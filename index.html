@@ -580,78 +580,131 @@ function codigoDetectado(
 // ENVIAR A GOOGLE APPS SCRIPT
 // =====================================
 
-async function validarCodigo(codigo) {
+function validarCodigo(codigo) {
 
   document
     .getElementById("resultado")
     .style.display = "none";
 
+
   document
     .getElementById("estado")
     .style.display = "none";
+
 
   document
     .getElementById("cargando")
     .style.display = "block";
 
-  try {
 
-    const datosEnviar =
-      new URLSearchParams();
+  // Crear un callback único
+  const callbackName =
+    "respuestaGoogle_" + Date.now();
 
-    datosEnviar.append(
-      "codigo",
-      codigo
-    );
 
-    const respuesta =
-      await fetch(
-        URL_API,
-        {
-          method: "POST",
-          body: datosEnviar,
-          redirect: "follow"
+  // Crear función temporal
+  window[callbackName] =
+    function(datos) {
+
+      // Eliminar script temporal
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+
+      // Eliminar callback temporal
+      delete window[callbackName];
+
+      // Cancelar timeout
+      clearTimeout(timeout);
+
+      // Mostrar respuesta
+      mostrarResultado(datos);
+
+    };
+
+
+  const url =
+    URL_API +
+    "?codigo=" +
+    encodeURIComponent(codigo) +
+    "&callback=" +
+    encodeURIComponent(callbackName);
+
+
+  // Crear script dinámico
+  const script =
+    document.createElement("script");
+
+
+  script.src =
+    url;
+
+
+  script.onerror =
+    function() {
+
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+
+      delete window[callbackName];
+
+      clearTimeout(timeout);
+
+      mostrarResultado({
+
+        ok: false,
+
+        tipo: "ERROR",
+
+        mensaje:
+          "No se pudo comunicar con Apps Script.",
+
+        codigo:
+          codigo
+
+      });
+
+    };
+
+
+  // Timeout de seguridad
+  const timeout =
+    setTimeout(
+      function() {
+
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
         }
-      );
 
-    const texto =
-      await respuesta.text();
+        delete window[callbackName];
 
-    console.log(
-      "Respuesta Apps Script:",
-      texto
+        mostrarResultado({
+
+          ok: false,
+
+          tipo: "ERROR",
+
+          mensaje:
+            "Apps Script tardó demasiado en responder.",
+
+          codigo:
+            codigo
+
+        });
+
+      },
+
+      15000
+
     );
 
-    const datos =
-      JSON.parse(texto);
 
-    mostrarResultado(datos);
-
-  } catch (error) {
-
-    console.error(
-      "ERROR:",
-      error
-    );
-
-    mostrarResultado({
-
-      ok: false,
-      tipo: "ERROR",
-
-      mensaje:
-        "Error de conexión: " +
-        error.message,
-
-      codigo:
-        codigo
-
-    });
-
-  }
+  document
+    .body
+    .appendChild(script);
 
 }
-
 
 
 // =====================================
