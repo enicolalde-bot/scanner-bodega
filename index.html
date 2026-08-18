@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0">
+
+<title>Escáner de Bodega</title>
+
+<script
+src="https://unpkg.com/html5-qrcode">
+</script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+
+  margin: 0;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  background: #f3f5f7;
+
+  color: #202124;
+
+}
+
+
+.app {
+
+  max-width: 520px;
+
+  margin: auto;
+
+  min-height: 100vh;
+
+  padding: 20px;
+
+}
+
+
+.encabezado {
+
+  text-align: center;
+
+  margin-bottom: 20px;
+
+}
+
+
+.encabezado h1 {
+
+  font-size: 24px;
+
+  margin: 10px 0 5px 0;
+
+}
+
+
+.encabezado p {
+
+  color: #666;
+
+  margin: 0;
+
+}
+
+
+.tarjeta {
+
+  background: white;
+
+  border-radius: 15px;
+
+  padding: 15px;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0,0,0,0.08);
+
+}
+
+
+#reader {
+
+  width: 100%;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+}
+
+
+.estado {
+
+  margin-top: 15px;
+
+  text-align: center;
+
+  font-size: 15px;
+
+  color: #555;
+
+}
+
+
+.resultado {
+
+  display: none;
+
+  margin-top: 15px;
+
+  padding: 18px;
+
+  border-radius: 12px;
+
+  text-align: center;
+
+}
+
+
+.correcto {
+
+  background: #dff3e4;
+
+  color: #146c2e;
+
+}
+
+
+.error {
+
+  background: #fde2e2;
+
+  color: #9b1c1c;
+
+}
+
+
+.advertencia {
+
+  background: #fff3cd;
+
+  color: #765b00;
+
+}
+
+
+.icono {
+
+  font-size: 35px;
+
+  margin-bottom: 8px;
+
+}
+
+
+.mensaje {
+
+  font-size: 18px;
+
+  font-weight: bold;
+
+}
+
+
+.codigo {
+
+  margin-top: 12px;
+
+  font-size: 24px;
+
+  font-weight: bold;
+
+}
+
+
+.producto {
+
+  margin-top: 8px;
+
+  font-size: 17px;
+
+}
+
+
+.cargando {
+
+  display: none;
+
+  text-align: center;
+
+  padding: 20px;
+
+}
+
+
+.manual {
+
+  margin-top: 20px;
+
+  background: white;
+
+  border-radius: 15px;
+
+  padding: 15px;
+
+}
+
+
+.manual h3 {
+
+  margin-top: 0;
+
+  text-align: center;
+
+}
+
+
+.grupo {
+
+  display: flex;
+
+  gap: 8px;
+
+}
+
+
+input {
+
+  flex: 1;
+
+  padding: 14px;
+
+  font-size: 18px;
+
+  border:
+
+    1px solid
+    #ccc;
+
+  border-radius: 8px;
+
+}
+
+
+button {
+
+  padding: 14px 18px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #1a73e8;
+
+  color: white;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+}
+
+
+button:active {
+
+  transform:
+    scale(0.98);
+
+}
+
+
+.pie {
+
+  text-align: center;
+
+  margin-top: 20px;
+
+  color: #777;
+
+  font-size: 12px;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+  <div class="encabezado">
+
+    <h1>
+      📦 Control de Bodega
+    </h1>
+
+    <p>
+      Escanee el código de barras
+    </p>
+
+  </div>
+
+
+  <div class="tarjeta">
+
+    <div id="reader"></div>
+
+
+    <div
+      id="estado"
+      class="estado">
+
+      Preparando cámara...
+
+    </div>
+
+
+    <div
+      id="cargando"
+      class="cargando">
+
+      ⏳ Validando código...
+
+    </div>
+
+
+    <div
+      id="resultado"
+      class="resultado">
+
+    </div>
+
+  </div>
+
+
+  <div class="manual">
+
+    <h3>
+      Ingreso manual
+    </h3>
+
+
+    <div class="grupo">
+
+      <input
+        id="codigoManual"
+        type="text"
+        inputmode="numeric"
+        placeholder="Código de barras">
+
+      <button
+        onclick="enviarManual()">
+
+        Validar
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="pie">
+
+    Sistema de registro de códigos
+
+  </div>
+
+
+</div>
+
+
+<script>
+
+
+// =====================================
+// COLOCA AQUÍ LA URL DE APPS SCRIPT
+// =====================================
+
+const URL_API =
+  "https://script.google.com/macros/s/AKfycbyWMgu0oHDXfNkx4tMDnjvOlD4vWHzaBGInxVPmxtwAPrrg59ygs_9tCLkBHNj_8yRYrQ/exec";
+
+
+let scanner = null;
+
+let procesando = false;
+
+let ultimoCodigo = "";
+
+let ultimoTiempo = 0;
+
+
+
+// =====================================
+// INICIAR CÁMARA
+// =====================================
+
+function iniciarCamara() {
+
+  document
+    .getElementById("resultado")
+    .style.display = "none";
+
+
+  document
+    .getElementById("cargando")
+    .style.display = "none";
+
+
+  document
+    .getElementById("estado")
+    .innerHTML =
+      "Solicitando acceso a la cámara...";
+
+
+  scanner =
+    new Html5Qrcode(
+      "reader"
+    );
+
+
+  const configuracion = {
+
+    fps: 12,
+
+    qrbox: function(
+      viewfinderWidth,
+      viewfinderHeight
+    ) {
+
+      const ancho =
+        Math.floor(
+          viewfinderWidth * 0.85
+        );
+
+
+      return {
+
+        width:
+          Math.min(
+            ancho,
+            350
+          ),
+
+        height: 130
+
+      };
+
+    },
+
+    aspectRatio: 1.777778
+
+  };
+
+
+  scanner
+    .start(
+
+      {
+        facingMode:
+          "environment"
+      },
+
+      configuracion,
+
+      codigoDetectado,
+
+      function(error) {
+
+        // Error normal mientras
+        // busca un código.
+
+      }
+
+    )
+
+    .then(function() {
+
+      document
+        .getElementById("estado")
+        .innerHTML =
+          "Apunte la cámara al código de barras";
+
+    })
+
+    .catch(function(error) {
+
+      console.error(error);
+
+
+      document
+        .getElementById("estado")
+        .innerHTML =
+          "❌ No se pudo abrir la cámara.<br>" +
+          "Revise el permiso de cámara del navegador.";
+
+    });
+
+}
+
+
+
+// =====================================
+// CÓDIGO DETECTADO
+// =====================================
+
+function codigoDetectado(
+  codigo
+) {
+
+  if (procesando) {
+    return;
+  }
+
+
+  codigo =
+    String(codigo).trim();
+
+
+  if (!codigo) {
+    return;
+  }
+
+
+  // Evita leer dos veces
+  // inmediatamente el mismo código.
+
+  const ahora =
+    Date.now();
+
+
+  if (
+    codigo === ultimoCodigo &&
+    ahora - ultimoTiempo < 4000
+  ) {
+
+    return;
+
+  }
+
+
+  ultimoCodigo =
+    codigo;
+
+  ultimoTiempo =
+    ahora;
+
+
+  procesando =
+    true;
+
+
+  validarCodigo(
+    codigo
+  );
+
+}
+
+
+
+// =====================================
+// ENVIAR A GOOGLE APPS SCRIPT
+// =====================================
+
+async function validarCodigo(
+  codigo
+) {
+
+  document
+    .getElementById("resultado")
+    .style.display = "none";
+
+
+  document
+    .getElementById("estado")
+    .style.display = "none";
+
+
+  document
+    .getElementById("cargando")
+    .style.display = "block";
+
+
+  try {
+
+
+    const respuesta =
+      await fetch(
+        URL_API,
+        {
+
+          method: "POST",
+
+          body:
+            JSON.stringify({
+              codigo: codigo
+            })
+
+        }
+      );
+
+
+    const datos =
+      await respuesta.json();
+
+
+    mostrarResultado(
+      datos
+    );
+
+
+  } catch (error) {
+
+
+    console.error(error);
+
+
+    mostrarResultado({
+
+      ok: false,
+
+      tipo: "ERROR",
+
+      mensaje:
+        "No se pudo conectar con Google Sheets.",
+
+      codigo:
+        codigo
+
+    });
+
+
+  }
+
+}
+
+
+
+// =====================================
+// MOSTRAR RESULTADO
+// =====================================
+
+function mostrarResultado(
+  datos
+) {
+
+  const div =
+    document
+      .getElementById(
+        "resultado"
+      );
+
+
+  document
+    .getElementById("cargando")
+    .style.display = "none";
+
+
+  document
+    .getElementById("estado")
+    .style.display = "block";
+
+
+  div.style.display =
+    "block";
+
+
+  if (datos.ok) {
+
+
+    div.className =
+      "resultado correcto";
+
+
+    div.innerHTML =
+
+      "<div class='icono'>✅</div>" +
+
+      "<div class='mensaje'>" +
+      escaparHTML(
+        datos.mensaje
+      ) +
+      "</div>" +
+
+      "<div class='codigo'>" +
+      escaparHTML(
+        datos.codigo
+      ) +
+      "</div>" +
+
+      "<div class='producto'>" +
+      escaparHTML(
+        datos.producto
+      ) +
+      "</div>";
+
+
+    vibrar(
+      [150, 80, 150]
+    );
+
+
+  } else if (
+    datos.tipo ===
+    "DUPLICADO"
+  ) {
+
+
+    div.className =
+      "resultado advertencia";
+
+
+    div.innerHTML =
+
+      "<div class='icono'>⚠️</div>" +
+
+      "<div class='mensaje'>" +
+      escaparHTML(
+        datos.mensaje
+      ) +
+      "</div>" +
+
+      "<div class='codigo'>" +
+      escaparHTML(
+        datos.codigo || ""
+      ) +
+      "</div>" +
+
+      "<div class='producto'>" +
+      escaparHTML(
+        datos.producto || ""
+      ) +
+      "</div>";
+
+
+    vibrar(
+      [400]
+    );
+
+
+  } else {
+
+
+    div.className =
+      "resultado error";
+
+
+    div.innerHTML =
+
+      "<div class='icono'>❌</div>" +
+
+      "<div class='mensaje'>" +
+      escaparHTML(
+        datos.mensaje
+      ) +
+      "</div>" +
+
+      "<div class='codigo'>" +
+      escaparHTML(
+        datos.codigo || ""
+      ) +
+      "</div>";
+
+
+    vibrar(
+      [500,100,500]
+    );
+
+  }
+
+
+  document
+    .getElementById("estado")
+    .innerHTML =
+      "Preparando siguiente lectura...";
+
+
+  // =================================
+  // CONTINUAR AUTOMÁTICAMENTE
+  // =================================
+
+  setTimeout(
+    function() {
+
+      div.style.display =
+        "none";
+
+
+      document
+        .getElementById("estado")
+        .innerHTML =
+          "Apunte la cámara al siguiente código";
+
+
+      procesando =
+        false;
+
+    },
+
+    1800
+
+  );
+
+}
+
+
+
+// =====================================
+// INGRESO MANUAL
+// =====================================
+
+function enviarManual() {
+
+  const input =
+    document
+      .getElementById(
+        "codigoManual"
+      );
+
+
+  const codigo =
+    input.value.trim();
+
+
+  if (!codigo) {
+
+    alert(
+      "Ingrese un código."
+    );
+
+    return;
+
+  }
+
+
+  if (procesando) {
+
+    return;
+
+  }
+
+
+  procesando =
+    true;
+
+
+  input.value =
+    "";
+
+
+  validarCodigo(
+    codigo
+  );
+
+}
+
+
+
+// =====================================
+// ENTER EN INGRESO MANUAL
+// =====================================
+
+document
+  .getElementById(
+    "codigoManual"
+  )
+  .addEventListener(
+    "keydown",
+    function(event) {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        enviarManual();
+
+      }
+
+    }
+  );
+
+
+
+// =====================================
+// SEGURIDAD HTML
+// =====================================
+
+function escaparHTML(
+  texto
+) {
+
+  return String(
+    texto || ""
+  )
+
+  .replace(
+    /&/g,
+    "&amp;"
+  )
+
+  .replace(
+    /</g,
+    "&lt;"
+  )
+
+  .replace(
+    />/g,
+    "&gt;"
+  )
+
+  .replace(
+    /"/g,
+    "&quot;"
+  )
+
+  .replace(
+    /'/g,
+    "&#039;"
+  );
+
+}
+
+
+
+// =====================================
+// VIBRACIÓN
+// =====================================
+
+function vibrar(
+  patron
+) {
+
+  if (
+    navigator.vibrate
+  ) {
+
+    navigator.vibrate(
+      patron
+    );
+
+  }
+
+}
+
+
+
+// =====================================
+// INICIAR
+// =====================================
+
+window.addEventListener(
+  "load",
+  iniciarCamara
+);
+
+
+</script>
+
+
+</body>
+
+</html>
