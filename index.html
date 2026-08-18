@@ -580,73 +580,73 @@ function codigoDetectado(
 // ENVIAR A GOOGLE APPS SCRIPT
 // =====================================
 
-async function validarCodigo(
-  codigo
-) {
+async function validarCodigo(codigo) {
 
   document
     .getElementById("resultado")
     .style.display = "none";
 
-
   document
     .getElementById("estado")
     .style.display = "none";
-
 
   document
     .getElementById("cargando")
     .style.display = "block";
 
-
   try {
 
+    const datosEnviar =
+      new URLSearchParams();
+
+    datosEnviar.append(
+      "codigo",
+      codigo
+    );
 
     const respuesta =
       await fetch(
         URL_API,
         {
-
           method: "POST",
-
-          body:
-            JSON.stringify({
-              codigo: codigo
-            })
-
+          body: datosEnviar,
+          redirect: "follow"
         }
       );
 
+    const texto =
+      await respuesta.text();
 
-    const datos =
-      await respuesta.json();
-
-
-    mostrarResultado(
-      datos
+    console.log(
+      "Respuesta Apps Script:",
+      texto
     );
 
+    const datos =
+      JSON.parse(texto);
+
+    mostrarResultado(datos);
 
   } catch (error) {
 
-
-    console.error(error);
-
+    console.error(
+      "ERROR:",
+      error
+    );
 
     mostrarResultado({
 
       ok: false,
-
       tipo: "ERROR",
 
       mensaje:
-        "No se pudo conectar con Google Sheets.",
+        "Error de conexión: " +
+        error.message,
 
       codigo:
         codigo
 
     });
-
 
   }
 
