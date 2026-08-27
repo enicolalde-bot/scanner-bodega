@@ -1,2163 +1,714 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ITSANET Kids - RITO</title>
 
-  <title>ITSANET Kids - RITO</title>
-
-  <style>
-    :root{
-      --ink:#15324d;
-      --muted:#64768a;
-      --blue:#3366ff;
-      --purple:#7047f5;
-      --sky:#e6f4ff;
-      --lav:#eee8ff;
-      --green:#198754;
-      --red:#ef4444;
-      --orange:#f97316;
-      --shadow:0 16px 42px rgba(38,74,120,.14);
-    }
-
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;
-      color:var(--ink);
-      background:
-        radial-gradient(circle at 8% 8%,#dff6ff 0 9%,transparent 10%),
-        radial-gradient(circle at 92% 10%,#eee3ff 0 10%,transparent 11%),
-        linear-gradient(135deg,#eef8ff,#f8f3ff);
-    }
-
-    button,input{font:inherit}
-
-    button{
-      touch-action:manipulation;
-    }
-
-    .app{
-      width:min(1080px,94vw);
-      margin:auto;
-      padding:22px 0 42px;
-    }
-
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:18px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      font-weight:900;
-    }
-
-    .logo{
-      width:54px;
-      height:54px;
-      display:grid;
-      place-items:center;
-      border-radius:18px;
-      background:white;
-      box-shadow:var(--shadow);
-      font-size:29px;
-    }
-
-    .score{
-      background:white;
-      padding:10px 15px;
-      border-radius:16px;
-      box-shadow:var(--shadow);
-      font-weight:900;
-    }
-
-    .screen{display:none}
-    .screen.active{display:block}
-
-    .card{
-      background:white;
-      padding:30px;
-      border-radius:28px;
-      box-shadow:var(--shadow);
-    }
-
-    h1{
-      margin:0 0 16px;
-      font-size:clamp(2.5rem,6vw,5rem);
-      line-height:.95;
-    }
-
-    h2{
-      margin:0 0 10px;
-      font-size:clamp(1.8rem,4vw,2.8rem);
-    }
-
-    p{
-      color:var(--muted);
-      font-size:1.08rem;
-      line-height:1.5;
-    }
-
-    .hero{
-      display:grid;
-      grid-template-columns:1.05fr .8fr;
-      gap:28px;
-      align-items:center;
-      padding-top:26px;
-    }
-
-    .robot{
-      text-align:center;
-      font-size:9rem;
-      animation:float 2.5s ease-in-out infinite;
-    }
-
-    @keyframes float{
-      50%{transform:translateY(-10px)}
-    }
-
-    .btn{
-      border:0;
-      border-radius:17px;
-      padding:15px 20px;
-      cursor:pointer;
-      font-weight:900;
-      transition:.18s ease;
-    }
-
-    .btn:hover{transform:translateY(-2px)}
-    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-
-    .primary{
-      color:white;
-      background:linear-gradient(135deg,var(--blue),var(--purple));
-    }
-
-    .soft{
-      color:var(--blue);
-      background:#eef4ff;
-    }
-
-    .mission-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:15px;
-      margin-top:18px;
-    }
-
-    .mission{
-      border:1px solid #e6edf6;
-      background:white;
-      border-radius:22px;
-      padding:22px;
-      cursor:pointer;
-      text-align:left;
-      transition:.18s ease;
-    }
-
-    .mission:hover{
-      transform:translateY(-3px);
-      box-shadow:0 10px 26px rgba(42,77,130,.10);
-    }
-
-    .mission .icon{font-size:2.5rem}
-    .mission h3{margin:8px 0 5px}
-
-    .chat-wrap{
-      max-width:920px;
-      margin:24px auto;
-    }
-
-    .chat-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .rito-face{
-      text-align:center;
-      font-size:3.3rem;
-      margin:4px 0 8px;
-    }
-
-    .chat{
-      min-height:300px;
-      max-height:430px;
-      overflow:auto;
-      padding:16px;
-      background:#f8fbff;
-      border-radius:20px;
-      scroll-behavior:smooth;
-    }
-
-    .bubble{
-      max-width:82%;
-      width:fit-content;
-      padding:13px 15px;
-      border-radius:18px;
-      margin:9px 0;
-      line-height:1.45;
-      animation:bubbleIn .2s ease;
-    }
-
-    @keyframes bubbleIn{
-      from{opacity:0;transform:translateY(5px)}
-      to{opacity:1;transform:none}
-    }
-
-    .rito{
-      background:var(--lav);
-      border-bottom-left-radius:5px;
-    }
-
-    .kid{
-      background:#dff2ff;
-      margin-left:auto;
-      border-bottom-right-radius:5px;
-    }
-
-    .suggestions{
-      margin-top:14px;
-      padding:15px;
-      border-radius:18px;
-      background:#fffaf0;
-      border:1px solid #f7e6bf;
-    }
-
-    .suggestions-title{
-      font-size:.92rem;
-      font-weight:900;
-      color:#8a6415;
-      margin-bottom:9px;
-    }
-
-    .chips{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .chip{
-      border:1px solid #ddd7c9;
-      background:white;
-      color:#42556a;
-      border-radius:999px;
-      padding:10px 13px;
-      cursor:pointer;
-      font-weight:800;
-      transition:.15s ease;
-    }
-
-    .chip:hover{
-      transform:translateY(-1px);
-      border-color:#bca9fa;
-    }
-
-    .voice-panel{
-      margin-top:14px;
-      padding:20px;
-      text-align:center;
-      border-radius:20px;
-      background:#f8fbff;
-    }
-
-    .mic-big{
-      width:104px;
-      height:104px;
-      border:0;
-      border-radius:50%;
-      color:white;
-      font-size:2.7rem;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-      background:linear-gradient(135deg,var(--blue),var(--purple));
-    }
-
-    .mic-big.active{
-      background:linear-gradient(135deg,var(--red),var(--orange));
-      animation:pulse .8s infinite;
-    }
-
-    @keyframes pulse{
-      50%{transform:scale(1.09)}
-    }
-
-    .status{
-      min-height:28px;
-      margin-top:12px;
-      font-weight:900;
-      color:var(--muted);
-    }
-
-    .micbar{
-      height:9px;
-      max-width:440px;
-      margin:12px auto 0;
-      border-radius:999px;
-      overflow:hidden;
-      background:#e8edf5;
-    }
-
-    .micbar > div{
-      width:0%;
-      height:100%;
-      transition:.15s ease;
-      background:linear-gradient(90deg,var(--blue),var(--purple));
-    }
-
-    .composer{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      margin-top:12px;
-    }
-
-    .composer input{
-      min-width:0;
-      border:2px solid #dbe5ef;
-      border-radius:15px;
-      padding:13px 15px;
-      font-size:16px;
-      outline:none;
-    }
-
-    .composer input:focus{
-      border-color:#91abff;
-    }
-
-    .connection{
-      margin-top:10px;
-      padding:9px 12px;
-      border-radius:12px;
-      font-size:.86rem;
-      color:#516478;
-      background:#edf3f8;
-      text-align:left;
-    }
-
-    .toast{
-      position:fixed;
-      bottom:18px;
-      right:18px;
-      max-width:360px;
-      padding:14px 16px;
-      border-radius:14px;
-      color:white;
-      font-weight:900;
-      opacity:0;
-      transform:translateY(10px);
-      transition:.2s;
-      pointer-events:none;
-      z-index:9999;
-      box-shadow:var(--shadow);
-    }
-
-    .toast.show{
-      opacity:1;
-      transform:none;
-    }
-
-    @media(max-width:760px){
-      .hero{grid-template-columns:1fr}
-      .mission-grid{grid-template-columns:1fr}
-      .card{padding:22px}
-      .bubble{max-width:92%}
-      .robot{font-size:7rem}
-    }
-  </style>
+<style>
+:root{
+  --ink:#15324d;--muted:#64768a;--blue:#3366ff;--purple:#7047f5;
+  --lav:#eee8ff;--shadow:0 16px 42px rgba(38,74,120,.14);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#eef8ff,#f8f3ff);
+}
+button,input{font:inherit}
+.app{width:min(1080px,94vw);margin:auto;padding:22px 0 42px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:900}
+.logo{width:54px;height:54px;display:grid;place-items:center;border-radius:18px;background:#fff;box-shadow:var(--shadow);font-size:29px}
+.score{background:#fff;padding:10px 15px;border-radius:16px;box-shadow:var(--shadow);font-weight:900}
+.screen{display:none}.screen.active{display:block}
+.card{background:#fff;padding:30px;border-radius:28px;box-shadow:var(--shadow)}
+h1{margin:0 0 16px;font-size:clamp(2.5rem,6vw,5rem);line-height:.95}
+h2{margin:0 0 10px;font-size:clamp(1.8rem,4vw,2.8rem)}
+p{color:var(--muted);font-size:1.08rem;line-height:1.5}
+.hero{display:grid;grid-template-columns:1.05fr .8fr;gap:28px;align-items:center;padding-top:26px}
+.robot{font-size:9rem;text-align:center;animation:float 2.5s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.btn{border:0;border-radius:17px;padding:15px 20px;cursor:pointer;font-weight:900}
+.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--purple))}
+.soft{color:var(--blue);background:#eef4ff}
+.mission-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:18px}
+.mission{border:1px solid #e6edf6;background:#fff;border-radius:22px;padding:22px;cursor:pointer;text-align:left}
+.mission .icon{font-size:2.5rem}.mission h3{margin:8px 0 5px}
+.chat-wrap{max-width:920px;margin:24px auto}
+.chat-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.turns{font-weight:900;color:var(--purple);background:#f1edff;padding:8px 12px;border-radius:999px}
+.rito-face{text-align:center;font-size:3.3rem;margin:4px 0 8px}
+.chat{min-height:300px;max-height:430px;overflow:auto;padding:16px;background:#f8fbff;border-radius:20px;scroll-behavior:smooth}
+.bubble{max-width:82%;width:fit-content;padding:13px 15px;border-radius:18px;margin:9px 0;line-height:1.45}
+.rito{background:var(--lav);border-bottom-left-radius:5px}
+.kid{background:#dff2ff;margin-left:auto;border-bottom-right-radius:5px}
+.suggestions{margin-top:14px;padding:15px;border-radius:18px;background:#fffaf0;border:1px solid #f7e6bf}
+.suggestions-title{font-size:.92rem;font-weight:900;color:#8a6415;margin-bottom:9px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid #ddd7c9;background:#fff;color:#42556a;border-radius:999px;padding:10px 13px;cursor:pointer;font-weight:800}
+.voice-panel{margin-top:14px;padding:20px;text-align:center;border-radius:20px;background:#f8fbff}
+.mic-big{width:104px;height:104px;border:0;border-radius:50%;color:#fff;font-size:2.7rem;cursor:pointer;box-shadow:var(--shadow);background:linear-gradient(135deg,var(--blue),var(--purple))}
+.mic-big.active{background:linear-gradient(135deg,#ef4444,#f97316);animation:pulse .8s infinite}
+@keyframes pulse{50%{transform:scale(1.09)}}
+.status{min-height:28px;margin-top:12px;font-weight:900;color:var(--muted)}
+.composer{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}
+.composer input{min-width:0;border:2px solid #dbe5ef;border-radius:15px;padding:13px 15px;font-size:16px}
+.finish{display:none;text-align:center;padding:22px;margin-top:14px;border-radius:22px;background:#fff7dc}
+.finish.show{display:block}
+.finish .big{font-size:4rem}
+@media(max-width:760px){
+  .hero{grid-template-columns:1fr}.mission-grid{grid-template-columns:1fr}
+  .card{padding:22px}.bubble{max-width:92%}.robot{font-size:7rem}
+}
+</style>
 </head>
 
 <body>
-
 <div class="app">
 
-  <div class="top">
+<div class="top">
+  <div class="brand">
+    <div class="logo">🚀</div>
+    <div>ITSANET KIDS<br><small>Misión Reingeniería</small></div>
+  </div>
+  <div class="score">⭐ <span id="score">0</span> puntos</div>
+</div>
 
-    <div class="brand">
-      <div class="logo">🚀</div>
+<section id="welcome" class="screen active">
+  <div class="hero">
+    <div class="card">
+      <small>APRENDE · HABLA · RESUELVE</small>
+      <h1>¡Hola! Soy RITO 🤖</h1>
+      <p>Resolveremos una pequeña misión juntos. Tendrás tres oportunidades para contarme tus ideas.</p>
+      <button id="startBtn" class="btn primary">🚀 ¡Comenzar aventura!</button>
+    </div>
+    <div class="robot">🤖</div>
+  </div>
+</section>
 
+<section id="missions" class="screen">
+  <div class="card">
+    <h2>Escoge tu misión 🎯</h2>
+    <p>Cada niño conversará tres veces con RITO y luego recibirá una despedida especial.</p>
+
+    <div class="mission-grid">
+      <button class="mission" data-mission="Bodega veloz">
+        <div class="icon">📦</div><h3>Bodega veloz</h3><p>Haz que las personas caminen menos.</p>
+      </button>
+      <button class="mission" data-mission="Ruta inteligente">
+        <div class="icon">🚚</div><h3>Ruta inteligente</h3><p>Organiza mejor las entregas.</p>
+      </button>
+      <button class="mission" data-mission="Detective de procesos">
+        <div class="icon">🔍</div><h3>Detective de procesos</h3><p>Encuentra pasos repetidos.</p>
+      </button>
+      <button class="mission" data-mission="Robot ayudante">
+        <div class="icon">⚙️</div><h3>Robot ayudante</h3><p>Descubre cómo ayuda la tecnología.</p>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="chatScreen" class="screen">
+  <div class="card chat-wrap">
+
+    <div class="chat-header">
       <div>
-        ITSANET KIDS
-        <br>
-        <small>Misión Reingeniería</small>
+        <small>MISIÓN ACTUAL</small>
+        <h2 id="missionTitle">Misión</h2>
       </div>
+      <div class="turns">💬 <span id="turnLabel">0 de 3</span></div>
     </div>
 
-    <div class="score">
-      ⭐ <span id="score">0</span> puntos
+    <div id="ritoFace" class="rito-face">🤖</div>
+
+    <div id="chat" class="chat" aria-live="polite"></div>
+
+    <div id="suggestionsBox" class="suggestions">
+      <div class="suggestions-title">
+        💡 ¿Necesitas una pista? Puedes tocar una idea:
+      </div>
+      <div id="suggestionChips" class="chips"></div>
+    </div>
+
+    <div id="interactionArea">
+      <div class="voice-panel">
+        <button id="micBtn" class="mic-big" type="button">🎤</button>
+        <div id="status" class="status">Toca el micrófono y cuéntame tu idea</div>
+        <p style="font-size:.9rem;margin:8px 0 0">RITO te escuchará y responderá con calma.</p>
+      </div>
+
+      <form id="chatForm" class="composer">
+        <input id="messageInput" maxlength="500" placeholder="También puedes escribir tu idea..." autocomplete="off">
+        <button class="btn primary" type="submit">Enviar</button>
+      </form>
+    </div>
+
+    <div id="finishBox" class="finish">
+      <div class="big">🏆</div>
+      <h2>¡Misión cumplida!</h2>
+      <p>RITO está listo para recibir al siguiente pequeño ingeniero.</p>
+      <button id="nextKidBtn" class="btn primary">👋 Siguiente niño</button>
     </div>
 
   </div>
-
-
-  <section id="welcome" class="screen active">
-
-    <div class="hero">
-
-      <div class="card">
-
-        <small>APRENDE · HABLA · RESUELVE</small>
-
-        <h1>
-          ¡Hola! Soy RITO 🤖
-        </h1>
-
-        <p>
-          Tengo varias misiones y necesito tus ideas.
-          Puedes hablar conmigo, escribir o usar una pista.
-        </p>
-
-        <button
-          id="startBtn"
-          class="btn primary"
-        >
-          🚀 ¡Comenzar aventura!
-        </button>
-
-      </div>
-
-      <div class="robot">
-        🤖
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section id="missions" class="screen">
-
-    <div class="card">
-
-      <h2>Escoge tu misión 🎯</h2>
-
-      <p>
-        No hay una sola respuesta correcta.
-        Queremos conocer cómo resolverías el problema.
-      </p>
-
-      <div class="mission-grid">
-
-        <button
-          class="mission"
-          data-mission="Bodega veloz"
-        >
-          <div class="icon">📦</div>
-          <h3>Bodega veloz</h3>
-          <p>Haz que las personas caminen menos.</p>
-        </button>
-
-        <button
-          class="mission"
-          data-mission="Ruta inteligente"
-        >
-          <div class="icon">🚚</div>
-          <h3>Ruta inteligente</h3>
-          <p>Ayuda a organizar mejor las entregas.</p>
-        </button>
-
-        <button
-          class="mission"
-          data-mission="Detective de procesos"
-        >
-          <div class="icon">🔍</div>
-          <h3>Detective de procesos</h3>
-          <p>Encuentra pasos repetidos.</p>
-        </button>
-
-        <button
-          class="mission"
-          data-mission="Robot ayudante"
-        >
-          <div class="icon">⚙️</div>
-          <h3>Robot ayudante</h3>
-          <p>Descubre cómo puede ayudar la tecnología.</p>
-        </button>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section id="chatScreen" class="screen">
-
-    <div class="card chat-wrap">
-
-      <div class="chat-header">
-
-        <div>
-          <small>MISIÓN ACTUAL</small>
-          <h2 id="missionTitle">Misión</h2>
-        </div>
-
-        <button
-          id="backBtn"
-          class="btn soft"
-        >
-          ← Otra misión
-        </button>
-
-      </div>
-
-
-      <div
-        id="ritoFace"
-        class="rito-face"
-      >
-        🤖
-      </div>
-
-
-      <div
-        id="chat"
-        class="chat"
-        aria-live="polite"
-      >
-      </div>
-
-
-      <div
-        id="suggestionsBox"
-        class="suggestions"
-      >
-
-        <div class="suggestions-title">
-          💡 ¿Necesitas una pista? Puedes usar una de estas ideas:
-        </div>
-
-        <div
-          id="suggestionChips"
-          class="chips"
-        >
-        </div>
-
-      </div>
-
-
-      <div class="voice-panel">
-
-        <button
-          id="micBtn"
-          class="mic-big"
-          type="button"
-        >
-          🎤
-        </button>
-
-        <div
-          id="status"
-          class="status"
-        >
-          Toca el micrófono para hablar con RITO
-        </div>
-
-        <div class="micbar">
-          <div id="micbarFill"></div>
-        </div>
-
-        <p style="font-size:.9rem;margin:8px 0 0">
-          También puedes usar una idea sugerida o escribir tu propia respuesta.
-        </p>
-
-        <div
-          id="connection"
-          class="connection"
-        >
-          IA: verificando conexión...
-        </div>
-
-      </div>
-
-
-      <form
-        id="chatForm"
-        class="composer"
-      >
-
-        <input
-          id="messageInput"
-          maxlength="500"
-          placeholder="Escribe aquí tu idea..."
-          autocomplete="off"
-        >
-
-        <button
-          class="btn primary"
-          type="submit"
-        >
-          Enviar 🚀
-        </button>
-
-      </form>
-
-    </div>
-
-  </section>
+</section>
 
 </div>
-
-
-<div
-  id="toast"
-  class="toast"
->
-</div>
-
 
 <script>
-
 (() => {
 
-  /* =====================================================
-     CONFIGURACIÓN
-     =====================================================
+  /* PEGA AQUÍ TU URL /exec DE APPS SCRIPT */
+  const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/itsanet.com/s/AKfycbxk3iCNwlFi8SpHsaOlIlsNlq7_O7k19gmGIYfBWP6Ap4ZM1aNOOsEA3ZG0OHdNJMAq/exec';
 
-     IMPORTANTE:
-
-     Después de publicar Code.gs como aplicación web,
-     copia aquí tu URL /exec.
-
-     Ejemplo:
-
-     const APPS_SCRIPT_URL =
-       'https://script.google.com/macros/s/XXXXXXXX/exec';
-
-  ===================================================== */
-
-  const APPS_SCRIPT_URL =
-    'https://script.google.com/a/macros/itsanet.com/s/AKfycbxk3iCNwlFi8SpHsaOlIlsNlq7_O7k19gmGIYfBWP6Ap4ZM1aNOOsEA3ZG0OHdNJMAq/exec';
-
-
-  /* =====================================================
-     ESTADO
-  ===================================================== */
+  const MAX_TURNS = 3;
 
   let currentMission = '';
-
   let history = [];
-
   let score = 0;
-
+  let turnCount = 0;
   let busy = false;
-
   let dictadoActivo = false;
-
   let reconocimiento = null;
-
   let ritoHablando = false;
-
-  let barraTimer = null;
-
   let callbackCounter = 0;
 
-
-  /* =====================================================
-     ELEMENTOS
-  ===================================================== */
-
-  const screens =
-    [...document.querySelectorAll('.screen')];
-
-  const chat =
-    document.getElementById('chat');
-
-  const input =
-    document.getElementById('messageInput');
-
-  const status =
-    document.getElementById('status');
-
-  const micBtn =
-    document.getElementById('micBtn');
-
-  const micbarFill =
-    document.getElementById('micbarFill');
-
-  const connection =
-    document.getElementById('connection');
-
-  const suggestionChips =
-    document.getElementById('suggestionChips');
-
-  const ritoFace =
-    document.getElementById('ritoFace');
-
-  const toast =
-    document.getElementById('toast');
-
-
-  /* =====================================================
-     MISIONES + RESPUESTAS SUGERIDAS
-  ===================================================== */
+  const screens = [...document.querySelectorAll('.screen')];
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('messageInput');
+  const status = document.getElementById('status');
+  const micBtn = document.getElementById('micBtn');
+  const ritoFace = document.getElementById('ritoFace');
+  const suggestionChips = document.getElementById('suggestionChips');
+  const suggestionsBox = document.getElementById('suggestionsBox');
+  const interactionArea = document.getElementById('interactionArea');
+  const finishBox = document.getElementById('finishBox');
+  const turnLabel = document.getElementById('turnLabel');
 
   const missions = {
-
     'Bodega veloz': {
-
       intro:
-        '¡Alerta de misión! 📦 ' +
-        'Una persona camina muchas veces para buscar cajas. ' +
+        'Hola, pequeño ingeniero. Soy RITO. Qué alegría tenerte aquí. ' +
+        'Tenemos una misión: una persona camina muchas veces para buscar cajas. ' +
         '¿Qué harías tú para que camine menos?',
-
-      suggestions: [
+      suggestions:[
         'Pondría las cajas más usadas cerca',
         'Ordenaría las cajas por tipo',
         'Marcaría dónde está cada caja'
       ]
     },
-
-
     'Ruta inteligente': {
-
       intro:
-        '¡Motores listos! 🚚 ' +
-        'Tenemos entregas cercanas, ' +
-        'pero los vehículos recorren demasiado. ' +
+        'Hola, pequeño ingeniero. Soy RITO. Estoy feliz de jugar contigo. ' +
+        'Tenemos varias entregas cercanas, pero los vehículos recorren demasiado. ' +
         '¿Cómo organizarías mejor las entregas?',
-
-      suggestions: [
+      suggestions:[
         'Juntaría entregas cercanas',
         'Buscaría una ruta más corta',
         'Revisaría el tráfico antes de salir'
       ]
     },
-
-
     'Detective de procesos': {
-
       intro:
-        '¡Modo detective activado! 🔍 ' +
+        'Hola, pequeño detective. Soy RITO. Necesito tu ayuda. ' +
         'Una persona escribe el mismo dato tres veces. ' +
-        '¿Qué cambiarías para ayudarla?',
-
-      suggestions: [
+        '¿Qué cambiarías para hacer su trabajo más fácil?',
+      suggestions:[
         'Escribiría el dato una sola vez',
         'Conectaría los sistemas',
         'Buscaría cuál paso se repite'
       ]
     },
-
-
     'Robot ayudante': {
-
       intro:
-        '¡Tecnología activada! ⚙️ ' +
+        'Hola, pequeño inventor. Soy RITO. Hoy trabajaremos juntos. ' +
         'Una persona copia el mismo dato muchas veces todos los días. ' +
         '¿Cómo podría ayudarle una computadora?',
-
-      suggestions: [
+      suggestions:[
         'Lo copiaría automáticamente',
         'Revisaría si hay errores',
         'Avisaría cuando algo esté mal'
       ]
     }
-
   };
 
-
-  /* =====================================================
-     UTILIDADES
-  ===================================================== */
+  const farewell =
+    '¡Misión cumplida! Me encantaron tus ideas. ' +
+    'Hoy pensaste como un verdadero pequeño ingeniero: observaste, imaginaste y buscaste una forma mejor de hacer las cosas. ' +
+    'Sigue preguntando, creando y soñando en grande. ¡Nos vemos en una próxima misión!';
 
   function show(id){
-
-    screens.forEach(
-      s =>
-        s.classList.toggle(
-          'active',
-          s.id === id
-        )
-    );
-
-    window.scrollTo({
-      top:0,
-      behavior:'smooth'
-    });
+    screens.forEach(s => s.classList.toggle('active', s.id === id));
+    window.scrollTo({top:0,behavior:'smooth'});
   }
 
-
-  function mostrarToast(
-    texto,
-    color='#175d83'
-  ){
-
-    toast.textContent =
-      texto;
-
-    toast.style.background =
-      color;
-
-    toast.classList.add(
-      'show'
-    );
-
-    setTimeout(
-      () =>
-        toast.classList.remove(
-          'show'
-        ),
-      2600
-    );
+  function addBubble(text, who){
+    const div = document.createElement('div');
+    div.className = 'bubble ' + who;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
   }
 
-
-  function addBubble(
-    text,
-    who
-  ){
-
-    const div =
-      document.createElement(
-        'div'
-      );
-
-    div.className =
-      'bubble ' + who;
-
-    div.textContent =
-      text;
-
-    chat.appendChild(
-      div
-    );
-
-    chat.scrollTop =
-      chat.scrollHeight;
+  /*
+   * MUY IMPORTANTE:
+   * El texto visible puede conservar emojis.
+   * La voz recibe una versión limpia para NO decir:
+   * "cohete", "caja", "robot", etc.
+   */
+  function limpiarTextoParaVoz(text){
+    return String(text || '')
+      .replace(/[\u{1F000}-\u{1FAFF}]/gu, ' ')
+      .replace(/[\u{2600}-\u{27BF}]/gu, ' ')
+      .replace(/[⭐✨❤♥️✅⚠️]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
-
-
-  /* =====================================================
-     RESPUESTAS SUGERIDAS
-  ===================================================== */
-
-  function renderSuggestions(){
-
-    suggestionChips.innerHTML =
-      '';
-
-    const data =
-      missions[currentMission];
-
-    if(
-      !data ||
-      !Array.isArray(
-        data.suggestions
-      )
-    ){
-
-      return;
-    }
-
-
-    data.suggestions.forEach(
-      suggestion => {
-
-        const button =
-          document.createElement(
-            'button'
-          );
-
-        button.type =
-          'button';
-
-        button.className =
-          'chip';
-
-        button.textContent =
-          suggestion;
-
-
-        button.addEventListener(
-          'click',
-          () => {
-
-            if(busy){
-              return;
-            }
-
-            sendToRito(
-              suggestion,
-              false
-            );
-          }
-        );
-
-
-        suggestionChips.appendChild(
-          button
-        );
-      }
-    );
-  }
-
-
-  /* =====================================================
-     VOZ DE RITO
-  ===================================================== */
 
   function bestSpanishVoice(){
+    const voices = speechSynthesis.getVoices();
 
-    const voices =
-      speechSynthesis.getVoices();
+    const preferencias = [
+      /es[-_]EC/i,
+      /es[-_]MX/i,
+      /es[-_]CO/i,
+      /es[-_]US/i,
+      /es[-_]PE/i,
+      /^es/i
+    ];
 
-
-    return (
-
-      voices.find(
-        v =>
-          /es[-_]EC/i.test(
-            v.lang
-          )
-      )
-
-      ||
-
-      voices.find(
-        v =>
-          /es[-_](MX|CO|PE|AR|CL|US)/i.test(
-            v.lang
-          )
-      )
-
-      ||
-
-      voices.find(
-        v =>
-          /^es/i.test(
-            v.lang
-          )
-      )
-
-      ||
-
-      null
-    );
-  }
-
-
-  function speak(
-    text,
-    mood='happy',
-    callback
-  ){
-
-    if(
-      !(
-        'speechSynthesis'
-        in window
-      )
-    ){
-
-      if(callback){
-        callback();
-      }
-
-      return;
+    for(const patron of preferencias){
+      const encontrada = voices.find(v => patron.test(v.lang));
+      if(encontrada) return encontrada;
     }
 
+    return null;
+  }
+
+  /*
+   * Voz estilo niño-robot:
+   * - velocidad más lenta
+   * - tono más alto
+   * - pausas reales entre frases
+   */
+  function speak(text, mood='happy', callback){
+    if(!('speechSynthesis' in window)){
+      if(callback) callback();
+      return;
+    }
 
     speechSynthesis.cancel();
+    ritoHablando = true;
 
-    ritoHablando =
-      true;
+    const limpio = limpiarTextoParaVoz(text);
 
+    const frases = limpio
+      .split(/(?<=[.!?])\s+/)
+      .map(x => x.trim())
+      .filter(Boolean);
 
-    const utter =
-      new SpeechSynthesisUtterance(
-        text
-      );
+    let index = 0;
 
-
-    const voice =
-      bestSpanishVoice();
-
-    if(voice){
-      utter.voice =
-        voice;
-    }
-
-
-    utter.lang =
-      'es-EC';
-
-
-    const config = {
-
-      happy:{
-        rate:1.04,
-        pitch:1.15,
-        face:'🤖'
-      },
-
-      excited:{
-        rate:1.10,
-        pitch:1.23,
-        face:'😄'
-      },
-
-      thinking:{
-        rate:.96,
-        pitch:1.05,
-        face:'🤔'
-      },
-
-      celebrate:{
-        rate:1.13,
-        pitch:1.28,
-        face:'🥳'
-      }
-
+    const moods = {
+      happy:{rate:.88,pitch:1.30,face:'🤖'},
+      excited:{rate:.90,pitch:1.38,face:'😄'},
+      thinking:{rate:.82,pitch:1.20,face:'🤔'},
+      celebrate:{rate:.90,pitch:1.42,face:'🥳'}
     };
 
-
-    const c =
-      config[mood]
-      ||
-      config.happy;
-
-
-    utter.rate =
-      c.rate;
-
-    utter.pitch =
-      c.pitch;
-
-    ritoFace.textContent =
-      c.face;
-
-
-    utter.onend =
-      () => {
-
-        ritoHablando =
-          false;
-
-        ritoFace.textContent =
-          '🤖';
-
-        if(callback){
-          callback();
-        }
-      };
-
-
-    utter.onerror =
-      () => {
-
-        ritoHablando =
-          false;
-
-        ritoFace.textContent =
-          '🤖';
-
-        if(callback){
-          callback();
-        }
-      };
-
-
-    speechSynthesis.speak(
-      utter
-    );
-  }
-
-
-  /* =====================================================
-     BARRA MIC
-  ===================================================== */
-
-  function iniciarBarra(){
-
-    detenerBarra();
-
-    let value = 10;
-
-    let dir = 1;
-
-
-    barraTimer =
-      setInterval(
-        () => {
-
-          value +=
-            dir * 8;
-
-
-          if(value >= 100){
-            value = 100;
-            dir = -1;
-          }
-
-
-          if(value <= 10){
-            value = 10;
-            dir = 1;
-          }
-
-
-          micbarFill.style.width =
-            value + '%';
-
-        },
-        120
-      );
-  }
-
-
-  function detenerBarra(){
-
-    if(barraTimer){
-
-      clearInterval(
-        barraTimer
-      );
-
-      barraTimer =
-        null;
-    }
-
-
-    micbarFill.style.width =
-      '0%';
-  }
-
-
-  /* =====================================================
-     MICRÓFONO
-  ===================================================== */
-
-  function actualizarMic(){
-
-    micBtn.classList.toggle(
-      'active',
-      dictadoActivo
-    );
-
-    micBtn.textContent =
-      dictadoActivo
-      ? '🛑'
-      : '🎤';
-
-
-    if(dictadoActivo){
-
-      status.textContent =
-        '🎤 ¡Te escucho! Habla con RITO...';
-
-      iniciarBarra();
-
-    }else{
-
-      status.textContent =
-        'Toca el micrófono para hablar con RITO';
-
-      detenerBarra();
-    }
-  }
-
-
-  function detenerDictado(){
-
-    dictadoActivo =
-      false;
-
-
-    if(reconocimiento){
-
-      try{
-        reconocimiento.stop();
-      }catch(error){}
-    }
-
-
-    actualizarMic();
-  }
-
-
-  function iniciarDictado(){
-
-    const SpeechRecognition =
-
-      window.SpeechRecognition ||
-
-      window.webkitSpeechRecognition;
-
-
-    if(!SpeechRecognition){
-
-      mostrarToast(
-        'Tu navegador no permite dictado por voz. Puedes usar las pistas o escribir.',
-        '#dc3545'
-      );
-
-      return;
-    }
-
-
-    if(dictadoActivo){
-
-      detenerDictado();
-
-      mostrarToast(
-        'Micrófono detenido',
-        '#64748b'
-      );
-
-      return;
-    }
-
-
-    reconocimiento =
-      new SpeechRecognition();
-
-
-    reconocimiento.lang =
-      'es-EC';
-
-
-    reconocimiento.continuous =
-      true;
-
-
-    reconocimiento.interimResults =
-      false;
-
-
-    reconocimiento.maxAlternatives =
-      1;
-
-
-    reconocimiento.onresult =
-      event => {
-
-        for(
-          let i =
-            event.resultIndex;
-
-          i <
-            event.results.length;
-
-          i++
-        ){
-
-          if(
-            !event.results[i].isFinal
-          ){
-
-            continue;
-          }
-
-
-          const text =
-
-            String(
-              event
-                .results[i][0]
-                .transcript ||
-              ''
-            )
-            .trim();
-
-
-          if(
-            text &&
-            !busy &&
-            !ritoHablando
-          ){
-
-            /*
-             Evita que el micrófono
-             escuche la propia voz
-             de RITO.
-            */
-
-            try{
-              reconocimiento.stop();
-            }catch(error){}
-
-
-            sendToRito(
-              text,
-              true
-            );
-          }
-        }
-      };
-
-
-    reconocimiento.onerror =
-      event => {
-
-        console.error(
-          'SpeechRecognition:',
-          event.error
-        );
-
-
-        if(
-          event.error ===
-            'not-allowed' ||
-
-          event.error ===
-            'service-not-allowed'
-        ){
-
-          detenerDictado();
-
-          mostrarToast(
-            'Permite el micrófono para este sitio en Chrome.',
-            '#dc3545'
-          );
-
-          return;
-        }
-
-
-        if(
-          event.error ===
-            'no-speech'
-        ){
-
-          status.textContent =
-            'No te escuché. Puedes seguir hablando.';
-
-          return;
-        }
-
-
-        if(
-          event.error !==
-            'aborted'
-        ){
-
-          status.textContent =
-            'No pude escuchar bien. Intenta otra vez.';
-        }
-      };
-
-
-    reconocimiento.onend =
-      () => {
-
-        /*
-         Si sigue activado
-         y RITO no habla,
-         Chrome puede reiniciar
-         la escucha.
-        */
-
-        if(
-          dictadoActivo &&
-          !busy &&
-          !ritoHablando
-        ){
-
-          setTimeout(
-            () => {
-
-              try{
-                reconocimiento.start();
-              }catch(error){}
-
-            },
-            450
-          );
-        }
-      };
-
-
-    try{
-
-      reconocimiento.start();
-
-      dictadoActivo =
-        true;
-
-      actualizarMic();
-
-      mostrarToast(
-        '¡Micrófono activo! 🎤',
-        '#198754'
-      );
-
-    }catch(error){
-
-      console.error(error);
-
-      detenerDictado();
-
-      mostrarToast(
-        'No pude iniciar el micrófono.',
-        '#dc3545'
-      );
-    }
-  }
-
-
-  function reanudarDictado(){
-
-    if(
-      !dictadoActivo ||
-      !reconocimiento
-    ){
-
-      return;
-    }
-
-
-    setTimeout(
-      () => {
-
-        try{
-
-          reconocimiento.start();
-
-          status.textContent =
-            '🎤 ¡Tu turno! Sigue hablando...';
-
-        }catch(error){}
-
-      },
-      500
-    );
-  }
-
-
-  /* =====================================================
-     JSONP - APPS SCRIPT
-  ===================================================== */
-
-  function llamarBackend(
-    message,
-    mission,
-    historyData
-  ){
-
-    return new Promise(
-      (resolve,reject) => {
-
-        if(
-          !APPS_SCRIPT_URL ||
-          APPS_SCRIPT_URL.includes(
-            'PEGA_AQUI'
-          )
-        ){
-
-          reject(
-            new Error(
-              'Falta configurar APPS_SCRIPT_URL en Index.html'
-            )
-          );
-
-          return;
-        }
-
-
-        const callbackName =
-
-          '__ritoCallback_' +
-
-          Date.now() +
-
-          '_' +
-
-          (++callbackCounter);
-
-
-        let script =
-          document.createElement(
-            'script'
-          );
-
-
-        let finished =
-          false;
-
-
-        const cleanup =
-          () => {
-
-            try{
-              delete window[
-                callbackName
-              ];
-            }catch(error){}
-
-
-            if(
-              script &&
-              script.parentNode
-            ){
-
-              script.parentNode.removeChild(
-                script
-              );
-            }
-          };
-
-
-        const timeout =
-          setTimeout(
-            () => {
-
-              if(finished){
-                return;
-              }
-
-              finished =
-                true;
-
-              cleanup();
-
-              reject(
-                new Error(
-                  'Tiempo de espera agotado'
-                )
-              );
-
-            },
-            20000
-          );
-
-
-        window[
-          callbackName
-        ] =
-          data => {
-
-            if(finished){
-              return;
-            }
-
-
-            finished =
-              true;
-
-
-            clearTimeout(
-              timeout
-            );
-
-
-            cleanup();
-
-            resolve(
-              data
-            );
-          };
-
-
-        const historyCompact =
-
-          Array.isArray(historyData)
-
-          ? historyData.slice(-6)
-
-          : [];
-
-
-        const params =
-          new URLSearchParams({
-            action:'ask',
-            callback:callbackName,
-            message:message,
-            mission:mission,
-            history:
-              JSON.stringify(
-                historyCompact
-              )
-          });
-
-
-        script.src =
-
-          APPS_SCRIPT_URL +
-
-          '?' +
-
-          params.toString();
-
-
-        script.onerror =
-          () => {
-
-            if(finished){
-              return;
-            }
-
-
-            finished =
-              true;
-
-            clearTimeout(
-              timeout
-            );
-
-            cleanup();
-
-            reject(
-              new Error(
-                'No se pudo cargar el backend'
-              )
-            );
-          };
-
-
-        document.body.appendChild(
-          script
-        );
-      }
-    );
-  }
-
-
-  /* =====================================================
-     ENVIAR A RITO
-  ===================================================== */
-
-  async function sendToRito(
-    text,
-    desdeVoz=false
-  ){
-
-    text =
-      String(
-        text || ''
-      )
-      .trim();
-
-
-    if(
-      !text ||
-      busy
-    ){
-
-      return;
-    }
-
-
-    addBubble(
-      text,
-      'kid'
-    );
-
-
-    const historyForApi =
-      history.slice();
-
-
-    history.push({
-      role:'user',
-      text:text
-    });
-
-
-    input.value =
-      '';
-
-
-    busy =
-      true;
-
-
-    micBtn.disabled =
-      true;
-
-
-    status.textContent =
-      '🤔 RITO está pensando...';
-
-
-    ritoFace.textContent =
-      '🤔';
-
-
-    connection.textContent =
-      'IA: enviando tu idea a RITO...';
-
-
-    try{
-
-      const data =
-        await llamarBackend(
-          text,
-          currentMission,
-          historyForApi
-        );
-
-
-      if(
-        !data ||
-        data.ok === false
-      ){
-
-        throw new Error(
-          data?.error ||
-          'Respuesta inválida'
-        );
+    const cfg = moods[mood] || moods.happy;
+    ritoFace.textContent = cfg.face;
+
+    function hablarSiguiente(){
+      if(index >= frases.length){
+        ritoHablando = false;
+        ritoFace.textContent = '🤖';
+        if(callback) callback();
+        return;
       }
 
+      const u = new SpeechSynthesisUtterance(frases[index]);
+      const voice = bestSpanishVoice();
 
-      let reply =
-        String(
-          data.reply || ''
-        )
-        .trim();
+      if(voice) u.voice = voice;
 
+      u.lang = 'es-EC';
+      u.rate = cfg.rate;
+      u.pitch = cfg.pitch;
+      u.volume = 1;
 
-      const banned = [
-        'child-friendly',
-        'educational',
-        'maximum 3',
-        'system prompt',
-        'instructions'
-      ];
+      u.onend = () => {
+        index++;
+        setTimeout(hablarSiguiente, 420);
+      };
 
+      u.onerror = () => {
+        index++;
+        setTimeout(hablarSiguiente, 250);
+      };
 
-      if(
-        !reply ||
-        banned.some(
-          x =>
-            reply
-              .toLowerCase()
-              .includes(x)
-        )
-      ){
+      speechSynthesis.speak(u);
+    }
 
-        reply =
-          '¡Súper! 🤖 Pensemos juntos. ' +
-          '¿Qué otra cosa cambiarías para mejorar el proceso?';
-      }
+    hablarSiguiente();
+  }
 
+  function renderSuggestions(){
+    suggestionChips.innerHTML = '';
 
-      const points =
-        Math.max(
-          0,
-          Math.min(
-            30,
-            Number(
-              data.points
-            ) || 5
-          )
-        );
+    missions[currentMission].suggestions.forEach(text => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip';
+      btn.textContent = text;
 
-
-      const validMoods = [
-        'happy',
-        'excited',
-        'thinking',
-        'celebrate'
-      ];
-
-
-      const mood =
-        validMoods.includes(
-          data.mood
-        )
-        ? data.mood
-        : 'happy';
-
-
-      history.push({
-        role:'model',
-        text:reply
+      btn.addEventListener('click', () => {
+        if(!busy && turnCount < MAX_TURNS){
+          sendToRito(text, false);
+        }
       });
 
-
-      addBubble(
-        reply,
-        'rito'
-      );
-
-
-      score +=
-        points;
-
-
-      document
-        .getElementById(
-          'score'
-        )
-        .textContent =
-          score;
-
-
-      connection.textContent =
-        'IA: conectada ✅';
-
-
-      busy =
-        false;
-
-
-      micBtn.disabled =
-        false;
-
-
-      mostrarToast(
-        '+' +
-        points +
-        ' puntos ⭐',
-        '#198754'
-      );
-
-
-      speak(
-        reply,
-        mood,
-        () => {
-
-          if(
-            desdeVoz &&
-            dictadoActivo
-          ){
-
-            reanudarDictado();
-
-          }else{
-
-            status.textContent =
-              dictadoActivo
-              ? '🎤 ¡Tu turno! Sigue hablando...'
-              : 'Toca el micrófono para responder';
-          }
-        }
-      );
-
-    }
-    catch(error){
-
-      console.error(
-        error
-      );
-
-
-      busy =
-        false;
-
-
-      micBtn.disabled =
-        false;
-
-
-      ritoFace.textContent =
-        '😅';
-
-
-      connection.textContent =
-        'IA: error de conexión ⚠️';
-
-
-      addBubble(
-        '¡Ups! Mi antena tuvo un problema 😅. ' +
-        'Puedes intentar otra vez o usar una de las pistas.',
-        'rito'
-      );
-
-
-      status.textContent =
-        'Puedes volver a intentarlo.';
-
-
-      mostrarToast(
-        error.message ||
-        'Error de conexión',
-        '#dc3545'
-      );
-
-
-      if(
-        desdeVoz &&
-        dictadoActivo
-      ){
-
-        reanudarDictado();
-      }
-    }
-  }
-
-
-  /* =====================================================
-     MISIÓN
-  ===================================================== */
-
-  function startMission(
-    name
-  ){
-
-    detenerDictado();
-
-
-    currentMission =
-      name;
-
-
-    history =
-      [];
-
-
-    chat.innerHTML =
-      '';
-
-
-    document
-      .getElementById(
-        'missionTitle'
-      )
-      .textContent =
-        name;
-
-
-    const data =
-      missions[name];
-
-
-    addBubble(
-      data.intro,
-      'rito'
-    );
-
-
-    history.push({
-      role:'model',
-      text:data.intro
+      suggestionChips.appendChild(btn);
     });
-
-
-    renderSuggestions();
-
-
-    show(
-      'chatScreen'
-    );
-
-
-    setTimeout(
-      () =>
-        speak(
-          data.intro,
-          'excited'
-        ),
-      250
-    );
   }
 
+  function actualizarTurno(){
+    turnLabel.textContent = turnCount + ' de ' + MAX_TURNS;
+  }
 
-  /* =====================================================
-     PRUEBA BACKEND
-  ===================================================== */
+  function detenerDictado(){
+    dictadoActivo = false;
 
-  function verificarBackend(){
+    if(reconocimiento){
+      try{ reconocimiento.stop(); }catch(e){}
+    }
 
-    if(
-      !APPS_SCRIPT_URL ||
-      APPS_SCRIPT_URL.includes(
-        'PEGA_AQUI'
-      )
-    ){
+    micBtn.classList.remove('active');
+    micBtn.textContent = '🎤';
+  }
 
-      connection.textContent =
-        'IA: falta pegar la URL de Apps Script en Index.html ⚠️';
+  function iniciarDictado(){
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
 
+    if(!SpeechRecognition){
+      status.textContent = 'Puedes usar una pista o escribir tu respuesta.';
       return;
     }
 
+    if(dictadoActivo){
+      detenerDictado();
+      status.textContent = 'Micrófono detenido.';
+      return;
+    }
 
-    const callbackName =
-      '__ritoHealth_' +
-      Date.now();
+    reconocimiento = new SpeechRecognition();
+    reconocimiento.lang = 'es-EC';
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = false;
+    reconocimiento.maxAlternatives = 1;
 
+    reconocimiento.onresult = event => {
+      for(let i=event.resultIndex;i<event.results.length;i++){
+        if(!event.results[i].isFinal) continue;
 
-    const script =
-      document.createElement(
-        'script'
-      );
+        const text = String(event.results[i][0].transcript || '').trim();
 
-
-    const cleanup =
-      () => {
-
-        try{
-          delete window[
-            callbackName
-          ];
-        }catch(error){}
-
-        script.remove();
-      };
-
-
-    const timeout =
-      setTimeout(
-        () => {
-
-          cleanup();
-
-          connection.textContent =
-            'IA: no pude comprobar el backend ⚠️';
-
-        },
-        10000
-      );
-
-
-    window[
-      callbackName
-    ] =
-      data => {
-
-        clearTimeout(
-          timeout
-        );
-
-        cleanup();
-
-
-        connection.textContent =
-
-          data &&
-          data.ok
-
-          ? 'IA: backend conectado ✅'
-
-          : 'IA: backend respondió con error ⚠️';
-      };
-
-
-    script.src =
-
-      APPS_SCRIPT_URL +
-
-      '?action=health&callback=' +
-
-      encodeURIComponent(
-        callbackName
-      );
-
-
-    document.body.appendChild(
-      script
-    );
-  }
-
-
-  /* =====================================================
-     EVENTOS
-  ===================================================== */
-
-  document
-    .getElementById(
-      'startBtn'
-    )
-    .addEventListener(
-      'click',
-      () => {
-
-        show(
-          'missions'
-        );
-
-
-        speak(
-          '¡Genial! Escoge una misión y vamos a resolverla juntos.',
-          'excited'
-        );
+        if(text && !busy && !ritoHablando && turnCount < MAX_TURNS){
+          try{ reconocimiento.stop(); }catch(e){}
+          sendToRito(text, true);
+        }
       }
-    );
+    };
 
-
-  document
-    .querySelectorAll(
-      '.mission'
-    )
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          'click',
-          () =>
-            startMission(
-              button.dataset.mission
-            )
-        );
-      }
-    );
-
-
-  document
-    .getElementById(
-      'backBtn'
-    )
-    .addEventListener(
-      'click',
-      () => {
-
+    reconocimiento.onerror = event => {
+      if(event.error === 'not-allowed' || event.error === 'service-not-allowed'){
         detenerDictado();
-
-        speechSynthesis.cancel();
-
-        show(
-          'missions'
-        );
+        status.textContent = 'Permite el micrófono para este sitio en Chrome.';
+      }else if(event.error !== 'aborted'){
+        status.textContent = 'No te escuché bien. Intenta otra vez.';
       }
-    );
+    };
 
-
-  micBtn.addEventListener(
-    'click',
-    iniciarDictado
-  );
-
-
-  document
-    .getElementById(
-      'chatForm'
-    )
-    .addEventListener(
-      'submit',
-      event => {
-
-        event.preventDefault();
-
-        sendToRito(
-          input.value,
-          false
-        );
+    reconocimiento.onend = () => {
+      if(
+        dictadoActivo &&
+        !busy &&
+        !ritoHablando &&
+        turnCount < MAX_TURNS
+      ){
+        setTimeout(() => {
+          try{ reconocimiento.start(); }catch(e){}
+        }, 500);
       }
-    );
+    };
 
-
-  if(
-    'speechSynthesis'
-    in window
-  ){
-
-    speechSynthesis.getVoices();
-
-    speechSynthesis.onvoiceschanged =
-      () =>
-        speechSynthesis.getVoices();
+    try{
+      reconocimiento.start();
+      dictadoActivo = true;
+      micBtn.classList.add('active');
+      micBtn.textContent = '🛑';
+      status.textContent = '🎤 Te escucho. Habla con calma...';
+    }catch(e){
+      detenerDictado();
+    }
   }
 
+  function reanudarDictado(){
+    if(!dictadoActivo || !reconocimiento || turnCount >= MAX_TURNS) return;
 
-  verificarBackend();
+    setTimeout(() => {
+      try{ reconocimiento.start(); }catch(e){}
+      status.textContent = '🎤 Tu turno. Cuéntame tu siguiente idea...';
+    }, 600);
+  }
+
+  function llamarBackend(message, mission, historyData, turn){
+    return new Promise((resolve,reject) => {
+
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PEGA_AQUI')){
+        reject(new Error('Falta configurar APPS_SCRIPT_URL'));
+        return;
+      }
+
+      const callbackName =
+        '__ritoCallback_' + Date.now() + '_' + (++callbackCounter);
+
+      const script = document.createElement('script');
+      let finished = false;
+
+      const cleanup = () => {
+        try{ delete window[callbackName]; }catch(e){}
+        if(script.parentNode) script.parentNode.removeChild(script);
+      };
+
+      const timeout = setTimeout(() => {
+        if(finished) return;
+        finished = true;
+        cleanup();
+        reject(new Error('Tiempo de espera agotado'));
+      }, 35000);
+
+      window[callbackName] = data => {
+        if(finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        cleanup();
+        resolve(data);
+      };
+
+      const params = new URLSearchParams({
+        action:'ask',
+        callback:callbackName,
+        message:message,
+        mission:mission,
+        turn:String(turn),
+        history:JSON.stringify(Array.isArray(historyData) ? historyData.slice(-4) : [])
+      });
+
+      script.src = APPS_SCRIPT_URL + '?' + params.toString();
+
+      script.onerror = () => {
+        if(finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        cleanup();
+        reject(new Error('No se pudo cargar el backend'));
+      };
+
+      document.body.appendChild(script);
+    });
+  }
+
+  function respuestaLocal(){
+    const m = currentMission.toLowerCase();
+
+    if(m.includes('bodega')){
+      return '¡Muy bien! Acercar y ordenar las cajas ayuda mucho. Pensemos en un último detalle.';
+    }
+
+    if(m.includes('ruta')){
+      return '¡Buena idea! Una ruta más corta puede ahorrar tiempo. Sigamos mejorándola.';
+    }
+
+    if(m.includes('detective')){
+      return '¡Buen trabajo! Encontraste una oportunidad para simplificar el proceso.';
+    }
+
+    return '¡Excelente! La tecnología puede ayudarnos a ahorrar pasos y tiempo.';
+  }
+
+  async function sendToRito(text, desdeVoz=false){
+    text = String(text || '').trim();
+
+    if(!text || busy || turnCount >= MAX_TURNS) return;
+
+    turnCount++;
+    actualizarTurno();
+
+    addBubble(text,'kid');
+
+    const historyForApi = history.slice();
+
+    history.push({role:'user',text:text});
+    input.value = '';
+    busy = true;
+    micBtn.disabled = true;
+    status.textContent = '🤔 RITO está pensando...';
+    ritoFace.textContent = '🤔';
+
+    let reply = '';
+    let mood = 'happy';
+    let points = 5;
+
+    try{
+      const data = await llamarBackend(
+        text,
+        currentMission,
+        historyForApi,
+        turnCount
+      );
+
+      if(!data || data.ok === false){
+        throw new Error('Respuesta inválida');
+      }
+
+      reply = String(data.reply || '').trim() || respuestaLocal();
+      mood = data.mood || 'happy';
+      points = Math.max(0,Math.min(30,Number(data.points)||5));
+
+    }catch(error){
+      reply = respuestaLocal();
+      mood = 'thinking';
+      points = 5;
+    }
+
+    history.push({role:'model',text:reply});
+    addBubble(reply,'rito');
+
+    score += points;
+    document.getElementById('score').textContent = score;
+
+    busy = false;
+    micBtn.disabled = false;
+
+    if(turnCount >= MAX_TURNS){
+      detenerDictado();
+
+      speak(reply,mood,() => {
+        setTimeout(finalizarMision,600);
+      });
+
+    }else{
+      speak(reply,mood,() => {
+        if(desdeVoz && dictadoActivo){
+          reanudarDictado();
+        }else{
+          status.textContent =
+            '🎤 Tu turno. Puedes hablar, escribir o tocar una pista.';
+        }
+      });
+    }
+  }
+
+  function finalizarMision(){
+    suggestionsBox.style.display = 'none';
+    interactionArea.style.display = 'none';
+
+    addBubble(farewell,'rito');
+
+    speak(farewell,'celebrate',() => {
+      finishBox.classList.add('show');
+    });
+  }
+
+  function startMission(name){
+    detenerDictado();
+    speechSynthesis.cancel();
+
+    currentMission = name;
+    history = [];
+    turnCount = 0;
+    score = 0;
+
+    document.getElementById('score').textContent = '0';
+    actualizarTurno();
+
+    chat.innerHTML = '';
+    finishBox.classList.remove('show');
+    suggestionsBox.style.display = '';
+    interactionArea.style.display = '';
+
+    document.getElementById('missionTitle').textContent = name;
+
+    const intro = missions[name].intro;
+
+    addBubble(intro,'rito');
+    history.push({role:'model',text:intro});
+
+    renderSuggestions();
+    show('chatScreen');
+
+    status.textContent = 'Escucha a RITO...';
+
+    setTimeout(() => {
+      speak(intro,'excited',() => {
+        status.textContent =
+          '🎤 ¡Tu turno! Habla, escribe o usa una pista.';
+      });
+    },300);
+  }
+
+  function resetForNextKid(){
+    detenerDictado();
+    speechSynthesis.cancel();
+
+    currentMission = '';
+    history = [];
+    turnCount = 0;
+    score = 0;
+
+    document.getElementById('score').textContent = '0';
+    show('missions');
+
+    setTimeout(() => {
+      speak(
+        '¡Hola! Bienvenido a una nueva misión. Escoge el reto que más te guste.',
+        'excited'
+      );
+    },250);
+  }
+
+  document.getElementById('startBtn').addEventListener('click',() => {
+    show('missions');
+
+    speak(
+      '¡Hola! Soy RITO. Bienvenido a Misión Reingeniería. Escoge el reto que más te guste y vamos a resolverlo juntos.',
+      'excited'
+    );
+  });
+
+  document.querySelectorAll('.mission').forEach(btn => {
+    btn.addEventListener('click',() => startMission(btn.dataset.mission));
+  });
+
+  micBtn.addEventListener('click',iniciarDictado);
+
+  document.getElementById('chatForm').addEventListener('submit',event => {
+    event.preventDefault();
+    sendToRito(input.value,false);
+  });
+
+  document.getElementById('nextKidBtn').addEventListener('click',resetForNextKid);
+
+  if('speechSynthesis' in window){
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  }
 
 })();
-
 </script>
-
 </body>
 </html>
