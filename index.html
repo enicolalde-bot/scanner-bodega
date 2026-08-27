@@ -306,15 +306,39 @@ p{color:var(--gray);line-height:1.55}
 
   function renderSuggestions(suggestions,index){
     $('chips').innerHTML='';
+
     suggestions.forEach((txt,i)=>{
       const b=document.createElement('button');
-      b.className='chip'+(i===index?' recommended':'');
+
+      b.className=
+        'chip'+
+        (i===index ? ' recommended' : '');
+
       b.textContent=txt;
-      b.disabled=busy||turnLocked;
+
+      // Mientras RITO habla, permanecen bloqueadas.
+      b.disabled=true;
+
       b.onclick=()=>submitAnswer(txt,false);
+
       $('chips').appendChild(b);
     });
-    $('suggestBox').style.display=suggestions.length?'block':'none';
+
+    $('suggestBox').style.display=
+      suggestions.length
+        ? 'block'
+        : 'none';
+  }
+
+  function setSuggestionsEnabled(enabled){
+    document
+      .querySelectorAll('.chip')
+      .forEach(b=>{
+        b.disabled=!enabled;
+      });
+
+    $('messageInput').disabled=!enabled;
+    $('sendBtn').disabled=!enabled;
   }
 
   function startMission(name){
@@ -333,13 +357,40 @@ p{color:var(--gray);line-height:1.55}
     // Guardamos en historial solo la versión sin nombre para no enviar el nombre a Gemini.
     history.push({role:'model',text:m.intro});
 
-    renderSuggestions(m.suggestions,m.recommendedIndex);
+    renderSuggestions(
+      m.suggestions,
+      m.recommendedIndex
+    );
+
+    setSuggestionsEnabled(false);
+
     show('game');
-    $('status').textContent='Escucha primero a RITO...';
-    setTimeout(()=>speak(personalizedIntro,'excited',()=>{
-      $('status').textContent='🎤 ¡Tu turno! Habla, escribe o toca una sugerencia.';
-      turnLocked=false;
-    }),250);
+
+    $('status').textContent=
+      'Escucha primero a RITO...';
+
+    // El micrófono queda ACTIVADO por defecto.
+    micEnabled=true;
+    $('micBtn').classList.add('active');
+    $('micBtn').textContent='■';
+
+    setTimeout(
+      ()=>speak(
+        personalizedIntro,
+        'excited',
+        ()=>{
+          turnLocked=false;
+          setSuggestionsEnabled(true);
+
+          $('status').textContent=
+            '🎤 ¡Te escucho! Habla, escribe o toca una sugerencia.';
+
+          // Empieza a escuchar automáticamente.
+          setTimeout(startRecognitionOnly,500);
+        }
+      ),
+      250
+    );
   }
 
   function backend(message,historyData,currentTurn){
@@ -380,30 +431,95 @@ p{color:var(--gray);line-height:1.55}
     const reply=String(data.reply||'¡Muy bien!').trim();
     history.push({role:'model',text:reply});
     bubble(reply,'rito-msg');
-    score+=Math.max(0,Math.min(30,Number(data.points)||5));$('score').textContent=score;
-    busy=false;
+    score+=
+      Math.max(
+        0,
+        Math.min(
+          30,
+          Number(data.points)||5
+        )
+      );
 
+    $('score').textContent=score;
+
+    // RITO todavía va a hablar, por eso sigue ocupado.
     if(turn>=MAX_TURNS){
-      renderSuggestions([], -1);stopMic();
-      speak(reply,data.mood||'celebrate',()=>setTimeout(finishMission,650));
+
+      renderSuggestions([], -1);
+
+      setSuggestionsEnabled(false);
+
+      stopMic();
+
+      speak(
+        reply,
+        data.mood||'celebrate',
+        ()=>setTimeout(
+          finishMission,
+          650
+        )
+      );
+
     }else{
-      renderSuggestions(data.suggestions||[],Number(data.recommendedIndex));
-      speak(reply,data.mood||'happy',()=>{
-        turnLocked=false;
-        $('status').textContent='🎤 ¡Tu turno! Una respuesta a la vez.';
-        if(fromVoice && micEnabled) setTimeout(startRecognitionOnly,450);
-      });
+
+      // Mostramos las NUEVAS sugerencias.
+      renderSuggestions(
+        data.suggestions||[],
+        Number(data.recommendedIndex)
+      );
+
+      setSuggestionsEnabled(false);
+
+      speak(
+        reply,
+        data.mood||'happy',
+        ()=>{
+
+          // Aquí comienza realmente el siguiente turno.
+          busy=false;
+          turnLocked=false;
+
+          setSuggestionsEnabled(true);
+
+          $('status').textContent=
+            micEnabled
+              ? '🎤 ¡Te escucho! Habla, escribe o toca una sugerencia.'
+              : 'Micrófono apagado. Puedes escribir o tocar una sugerencia.';
+
+          // Como el micrófono está activo por defecto,
+          // reanudamos la escucha en TODOS los turnos.
+          if(micEnabled){
+            setTimeout(
+              startRecognitionOnly,
+              600
+            );
+          }
+        }
+      );
     }
   }
 
   function finishMission(){
-    $('interaction').style.display='none';$('suggestBox').style.display='none';
+    busy=false;
+    turnLocked=true;
+
+    $('interaction').style.display='none';
+    $('suggestBox').style.display='none';
+
     const farewell=despedidaPersonalizada();
     bubble(farewell,'rito-msg');
     speak(farewell,'celebrate',()=>$('finish').classList.add('show'));
   }
 
-  function stopRecognitionOnly(){if(recognition){try{recognition.abort()}catch(e){}}}
+  function stopRecognitionOnly(){
+    if(recognition){
+      try{
+        recognition.abort();
+      }catch(e){}
+
+      recognition=null;
+    }
+  }
   function stopMic(){micEnabled=false;stopRecognitionOnly();$('micBtn').classList.remove('active');$('micBtn').textContent='🎤'}
 
   function createRecognition(){
@@ -428,15 +544,97 @@ p{color:var(--gray);line-height:1.55}
   }
 
   function startRecognitionOnly(){
-    if(!micEnabled||busy||turnLocked||ritoSpeaking||turn>=MAX_TURNS)return;
-    if(!recognition)recognition=createRecognition();
-    if(!recognition){$('status').textContent='Tu navegador no permite reconocimiento de voz.';return}
-    try{recognition.start();$('status').textContent='🎤 Te escucho... una voz a la vez.'}catch(e){}
+
+    if(
+      !micEnabled ||
+      busy ||
+      turnLocked ||
+      ritoSpeaking ||
+      turn>=MAX_TURNS
+    ){
+      return;
+    }
+
+    // Una instancia nueva por turno evita que Chrome
+    // quede enganchado después de la segunda respuesta.
+    if(recognition){
+      try{
+        recognition.abort();
+      }catch(e){}
+
+      recognition=null;
+    }
+
+    recognition=createRecognition();
+
+    if(!recognition){
+      $('status').textContent=
+        'Tu navegador no permite reconocimiento de voz.';
+
+      return;
+    }
+
+    try{
+
+      recognition.start();
+
+      $('status').textContent=
+        '🎤 Te escucho... una voz a la vez.';
+
+    }catch(e){
+
+      console.error(
+        'No se pudo iniciar reconocimiento:',
+        e
+      );
+
+      setTimeout(
+        ()=>{
+
+          if(
+            micEnabled &&
+            !busy &&
+            !turnLocked &&
+            !ritoSpeaking
+          ){
+
+            recognition=
+              createRecognition();
+
+            try{
+              recognition.start();
+
+              $('status').textContent=
+                '🎤 Te escucho...';
+            }catch(err){}
+          }
+        },
+        650
+      );
+    }
   }
 
   $('micBtn').onclick=()=>{
-    if(micEnabled){stopMic();$('status').textContent='Micrófono detenido.';return}
-    micEnabled=true;$('micBtn').classList.add('active');$('micBtn').textContent='■';
+
+    if(micEnabled){
+
+      stopMic();
+
+      $('status').textContent=
+        '🔇 Micrófono apagado. Tócalo para volver a activarlo.';
+
+      return;
+    }
+
+    micEnabled=true;
+
+    $('micBtn').classList.add('active');
+
+    $('micBtn').textContent='■';
+
+    $('status').textContent=
+      '🎤 Micrófono activo. Te escucho...';
+
     startRecognitionOnly();
   };
   $('sendBtn').onclick=()=>submitAnswer($('messageInput').value,false);
