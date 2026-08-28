@@ -153,8 +153,8 @@ p{color:var(--gray);line-height:1.55}
 
   <section id="missions" class="screen">
     <div class="card mission-area">
-      <div class="kicker">ELIGE TU DESAFÍO</div>
-      <h2>¿Qué quieres resolver?</h2>
+      <div class="kicker">3 DESAFÍOS SORPRESA</div>
+      <h2>Escoge una aventura para comenzar</h2><p>RITO elegirá 3 preguntas diferentes al azar. Siempre incluirá al menos un reto de seguridad.</p>
       <div class="mission-grid">
         <button class="mission" data-mission="Bodega veloz"><div class="ico">📦</div><h3>Bodega veloz</h3><p>Reducir recorridos y ordenar mejor.</p></button>
         <button class="mission" data-mission="Ruta inteligente"><div class="ico">🚚</div><h3>Ruta inteligente</h3><p>Hacer entregas con menos recorrido.</p></button>
@@ -221,28 +221,173 @@ p{color:var(--gray);line-height:1.55}
   const $=id=>document.getElementById(id);
   const screens=[...document.querySelectorAll('.screen')];
 
-  const missions={
-    'Bodega veloz':{
-      intro:'¡Hola, pequeño ingeniero! Tenemos una bodega donde una persona camina demasiado para buscar cajas. ¿Qué harías para ayudarla?',
-      suggestions:['Dejaría todo igual','Pondría lo más usado cerca','Caminaría más'],
+  /*
+   * BANCO DE PREGUNTAS.
+   * Cada niño recibe exactamente 3 preguntas diferentes elegidas al azar.
+   * Cada pregunta tiene 3 sugerencias y una recomendada en verde.
+   */
+  const questionBank = [
+    {
+      category:'Bodega',
+      question:'En una bodega, una persona camina muchas veces para buscar las cajas que más usa. ¿Qué harías para ayudarla?',
+      suggestions:[
+        'Dejaría todo en el mismo lugar',
+        'Pondría las cajas más usadas cerca',
+        'Haría que camine más rápido'
+      ],
       recommendedIndex:1
     },
-    'Ruta inteligente':{
-      intro:'¡Vamos con transporte! Tenemos entregas muy cercanas, pero el vehículo da muchas vueltas. ¿Qué harías para mejorar la ruta?',
-      suggestions:['Daría más vueltas','Juntaría entregas cercanas','Saldría sin revisar'],
-      recommendedIndex:1
-    },
-    'Detective de procesos':{
-      intro:'¡Modo detective! Una persona escribe el mismo dato tres veces. ¿Cómo podríamos hacer su trabajo más fácil?',
-      suggestions:['Lo escribiría una sola vez','Lo repetiría otra vez','Agregaría otro formulario'],
+    {
+      category:'Bodega',
+      question:'Hay cajas mezcladas y cuesta encontrarlas. ¿Qué idea ayudaría a trabajar mejor?',
+      suggestions:[
+        'Ordenarlas y colocar etiquetas',
+        'Esconder algunas cajas',
+        'Ponerlas todas juntas sin orden'
+      ],
       recommendedIndex:0
     },
-    'Robot ayudante':{
-      intro:'¡Tecnología activada! Una persona copia el mismo dato muchas veces todos los días. ¿Cómo podría ayudarle una computadora?',
-      suggestions:['Copiarlo automáticamente','Hacerlo más veces a mano','No revisar nada'],
+    {
+      category:'Seguridad',
+      question:'Antes de entrar a una zona de trabajo donde se requiere protección, ¿qué es importante hacer?',
+      suggestions:[
+        'Entrar corriendo',
+        'Ponerse el casco y el equipo de seguridad',
+        'Entrar sin mirar las señales'
+      ],
+      recommendedIndex:1
+    },
+    {
+      category:'Seguridad',
+      question:'Si ves una zona marcada como segura para caminar dentro de una operación, ¿qué deberías hacer?',
+      suggestions:[
+        'Caminar por la zona segura',
+        'Caminar entre los equipos',
+        'Cruzar por cualquier lugar'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Seguridad',
+      question:'Si encuentras una caja bloqueando un paso seguro, ¿qué sería mejor hacer?',
+      suggestions:[
+        'Dejarla ahí',
+        'Moverla o avisar para mantener libre el paso',
+        'Saltar sobre la caja'
+      ],
+      recommendedIndex:1
+    },
+    {
+      category:'Procesos',
+      question:'Una persona escribe el mismo dato tres veces en lugares diferentes. ¿Cómo podríamos mejorar ese trabajo?',
+      suggestions:[
+        'Escribirlo todavía más veces',
+        'Escribirlo una sola vez y compartirlo',
+        'Borrar todos los datos'
+      ],
+      recommendedIndex:1
+    },
+    {
+      category:'Procesos',
+      question:'Un proceso tiene muchos pasos y dos de ellos hacen exactamente lo mismo. ¿Qué harías?',
+      suggestions:[
+        'Revisaría si podemos eliminar el paso repetido',
+        'Agregaría más pasos',
+        'No revisaría el proceso'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Transporte',
+      question:'Tenemos tres entregas muy cerca unas de otras. ¿Cómo podríamos recorrer menos distancia?',
+      suggestions:[
+        'Juntaría las entregas cercanas en una misma ruta',
+        'Haría tres viajes separados sin revisar',
+        'Tomaría siempre el camino más largo'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Transporte',
+      question:'Antes de salir a realizar varias entregas, ¿qué podría ayudarnos a elegir una mejor ruta?',
+      suggestions:[
+        'Revisar los lugares y el recorrido antes de salir',
+        'Salir sin saber a dónde vamos',
+        'Dar vueltas hasta encontrar el lugar'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Tecnología',
+      question:'Una persona copia el mismo dato muchas veces todos los días. ¿Cómo podría ayudar una computadora?',
+      suggestions:[
+        'Copiar el dato automáticamente',
+        'Pedirle que lo copie más veces',
+        'No guardar ningún dato'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Tecnología',
+      question:'Un trabajador debe revisar muchas veces si falta información. ¿Qué podría hacer la tecnología?',
+      suggestions:[
+        'Avisar automáticamente cuando falte un dato',
+        'Ocultar los errores',
+        'No revisar nada'
+      ],
+      recommendedIndex:0
+    },
+    {
+      category:'Seguridad',
+      question:'Si una alarma o señal avisa que no debemos entrar a una zona, ¿qué sería lo más seguro?',
+      suggestions:[
+        'Respetar la señal y permanecer en la zona segura',
+        'Entrar para mirar qué pasa',
+        'Ignorar la señal'
+      ],
       recommendedIndex:0
     }
-  };
+  ];
+
+  let sessionQuestions = [];
+
+  function seleccionarTresPreguntas(){
+    const copia=[...questionBank];
+
+    for(let i=copia.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copia[i],copia[j]]=[copia[j],copia[i]];
+    }
+
+    const seguridad=copia.find(q=>q.category==='Seguridad');
+    const otras=copia.filter(q=>q.category!=='Seguridad');
+    const seleccion=[];
+
+    if(seguridad) seleccion.push(seguridad);
+
+    for(const q of otras){
+      if(seleccion.length>=3) break;
+      if(!seleccion.some(x=>x.category===q.category)){
+        seleccion.push(q);
+      }
+    }
+
+    for(const q of copia){
+      if(seleccion.length>=3) break;
+      if(!seleccion.includes(q)) seleccion.push(q);
+    }
+
+    for(let i=seleccion.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [seleccion[i],seleccion[j]]=[seleccion[j],seleccion[i]];
+    }
+
+    return seleccion.slice(0,3);
+  }
+
+  function preguntaActual(){
+    return sessionQuestions[turn] || null;
+  }
 
   const farewellBase='¡Misión cumplida! Me encantaron tus ideas. Hoy pensaste como un verdadero pequeño ingeniero de ITSANET: observaste un problema, imaginaste soluciones y buscaste una forma mejor de hacerlo. Sigue preguntando, creando y soñando en grande. ¡Te esperamos en una próxima misión!';
 
@@ -342,54 +487,111 @@ p{color:var(--gray);line-height:1.55}
   }
 
   function startMission(name){
-    stopMic();speechSynthesis.cancel();
-    mission=name;history=[];turn=0;score=0;busy=false;turnLocked=false;
-    $('score').textContent='0';$('turnLabel').textContent='0/3';
-    $('chat').innerHTML='';$('finish').classList.remove('show');$('interaction').style.display='block';
-    $('missionTitle').textContent=name;
-    const m=missions[name];
-    const personalizedIntro = userName
-      ? '¡Vamos, '+userName+'! '+m.intro
-      : m.intro;
+    stopMic();
+    speechSynthesis.cancel();
 
-    bubble(personalizedIntro,'rito-msg');
+    mission=name;
+    history=[];
+    turn=0;
+    score=0;
+    busy=false;
+    turnLocked=true;
 
-    // Guardamos en historial solo la versión sin nombre para no enviar el nombre a Gemini.
-    history.push({role:'model',text:m.intro});
+    sessionQuestions=seleccionarTresPreguntas();
+
+    $('score').textContent='0';
+    $('turnLabel').textContent='0/3';
+    $('chat').innerHTML='';
+    $('finish').classList.remove('show');
+    $('interaction').style.display='block';
+    $('missionTitle').textContent='3 desafíos sorpresa';
+
+    const q=preguntaActual();
+
+    const intro=
+      userName
+        ? '¡Vamos, '+userName+'! Tengo tres desafíos sorpresa para ti. '+q.question
+        : '¡Tengo tres desafíos sorpresa para ti! '+q.question;
+
+    bubble(intro,'rito-msg');
+
+    // Nunca enviamos el nombre del niño a Gemini.
+    history.push({
+      role:'model',
+      text:q.question
+    });
 
     renderSuggestions(
-      m.suggestions,
-      m.recommendedIndex
+      q.suggestions,
+      q.recommendedIndex
     );
 
     setSuggestionsEnabled(false);
 
     show('game');
 
-    $('status').textContent=
-      'Escucha primero a RITO...';
+    $('status').textContent='Escucha primero a RITO...';
 
-    // El micrófono queda ACTIVADO por defecto.
+    // Micrófono activo por defecto.
     micEnabled=true;
     $('micBtn').classList.add('active');
     $('micBtn').textContent='■';
 
     setTimeout(
       ()=>speak(
-        personalizedIntro,
+        intro,
         'excited',
         ()=>{
           turnLocked=false;
           setSuggestionsEnabled(true);
-
-          $('status').textContent=
-            '🎤 ¡Te escucho! Habla, escribe o toca una sugerencia.';
-
-          // Empieza a escuchar automáticamente.
+          $('status').textContent='🎤 ¡Te escucho! Habla, escribe o toca una sugerencia.';
           setTimeout(startRecognitionOnly,500);
         }
       ),
       250
+    );
+  }
+
+  function mostrarSiguientePregunta(){
+    const q=preguntaActual();
+    if(!q) return;
+
+    const texto=
+      userName
+        ? '¡Muy bien, '+userName+'! Vamos con el siguiente desafío. '+q.question
+        : '¡Muy bien! Vamos con el siguiente desafío. '+q.question;
+
+    bubble(texto,'rito-msg');
+
+    history.push({
+      role:'model',
+      text:q.question
+    });
+
+    renderSuggestions(
+      q.suggestions,
+      q.recommendedIndex
+    );
+
+    setSuggestionsEnabled(false);
+
+    speak(
+      texto,
+      'excited',
+      ()=>{
+        busy=false;
+        turnLocked=false;
+        setSuggestionsEnabled(true);
+
+        $('status').textContent=
+          micEnabled
+            ? '🎤 ¡Te escucho! Una respuesta a la vez.'
+            : 'Micrófono apagado. Puedes escribir o tocar una sugerencia.';
+
+        if(micEnabled){
+          setTimeout(startRecognitionOnly,600);
+        }
+      }
     );
   }
 
@@ -413,90 +615,81 @@ p{color:var(--gray);line-height:1.55}
 
   async function submitAnswer(text,fromVoice){
     text=String(text||'').trim();
-    if(!text||busy||turnLocked||turn>=MAX_TURNS)return;
-    turnLocked=true;busy=true;stopRecognitionOnly();
-    turn++;$('turnLabel').textContent=turn+'/3';
-    bubble(text,'kid');
-    const prior=history.slice();history.push({role:'user',text});
-    $('messageInput').value='';$('status').textContent='RITO está pensando...';
-    [...document.querySelectorAll('.chip')].forEach(b=>b.disabled=true);
 
-    let data;
-    try{ data=await backend(text,prior,turn); }
-    catch(e){
-      data={ok:true,reply:'¡Muy bien! Sigamos buscando una forma mejor de hacerlo.',points:5,mood:'thinking',
-        suggestions:turn<3?['Ordenaría mejor','Reduciría pasos','Usaría tecnología']:[],recommendedIndex:turn<3?1:-1};
+    if(!text || busy || turnLocked || turn>=MAX_TURNS){
+      return;
     }
 
-    const reply=String(data.reply||'¡Muy bien!').trim();
-    history.push({role:'model',text:reply});
-    bubble(reply,'rito-msg');
-    score+=
-      Math.max(
-        0,
-        Math.min(
-          30,
-          Number(data.points)||5
-        )
-      );
+    turnLocked=true;
+    busy=true;
+    stopRecognitionOnly();
 
+    turn++;
+    $('turnLabel').textContent=turn+'/3';
+
+    bubble(text,'kid');
+
+    const prior=history.slice();
+
+    history.push({
+      role:'user',
+      text:text
+    });
+
+    $('messageInput').value='';
+    $('status').textContent='RITO está pensando...';
+    setSuggestionsEnabled(false);
+
+    let data;
+
+    try{
+      data=await backend(text,prior,turn);
+    }
+    catch(e){
+      data={
+        ok:true,
+        reply:'¡Muy bien! Esa es una idea interesante.',
+        points:5,
+        mood:'happy'
+      };
+    }
+
+    const reply=String(
+      data.reply || '¡Muy bien! Esa es una buena idea.'
+    ).trim();
+
+    history.push({
+      role:'model',
+      text:reply
+    });
+
+    bubble(reply,'rito-msg');
+
+    score+=Math.max(0,Math.min(30,Number(data.points)||5));
     $('score').textContent=score;
 
-    // RITO todavía va a hablar, por eso sigue ocupado.
     if(turn>=MAX_TURNS){
-
       renderSuggestions([], -1);
-
       setSuggestionsEnabled(false);
-
       stopMic();
 
       speak(
         reply,
         data.mood||'celebrate',
-        ()=>setTimeout(
-          finishMission,
-          650
-        )
+        ()=>setTimeout(finishMission,650)
       );
 
-    }else{
-
-      // Mostramos las NUEVAS sugerencias.
-      renderSuggestions(
-        data.suggestions||[],
-        Number(data.recommendedIndex)
-      );
-
-      setSuggestionsEnabled(false);
-
-      speak(
-        reply,
-        data.mood||'happy',
-        ()=>{
-
-          // Aquí comienza realmente el siguiente turno.
-          busy=false;
-          turnLocked=false;
-
-          setSuggestionsEnabled(true);
-
-          $('status').textContent=
-            micEnabled
-              ? '🎤 ¡Te escucho! Habla, escribe o toca una sugerencia.'
-              : 'Micrófono apagado. Puedes escribir o tocar una sugerencia.';
-
-          // Como el micrófono está activo por defecto,
-          // reanudamos la escucha en TODOS los turnos.
-          if(micEnabled){
-            setTimeout(
-              startRecognitionOnly,
-              600
-            );
-          }
-        }
-      );
+      return;
     }
+
+    // Garantizamos que siempre avance a la siguiente pregunta.
+    speak(
+      reply,
+      data.mood||'happy',
+      ()=>{
+        setTimeout(mostrarSiguientePregunta,550);
+      }
+    );
   }
 
   function finishMission(){
