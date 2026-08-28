@@ -164,6 +164,19 @@ p{color:var(--gray);line-height:1.55}
   background:#1FA463;
 }
 
+
+.chip.selected-correct{
+  background:#E9F8F0!important;
+  border-color:#1FA463!important;
+  color:#12613c!important;
+  transform:scale(1.03);
+}
+.chip.selected-wrong{
+  background:#FFF1EE!important;
+  border-color:#E85D4A!important;
+  color:#8A2E23!important;
+}
+
 </style>
 </head>
 <body>
@@ -282,7 +295,7 @@ p{color:var(--gray);line-height:1.55}
 
 <script>
 (() => {
-  const APPS_SCRIPT_URL='https://script.google.com/a/macros/itsanet.com/s/AKfycbxk3iCNwlFi8SpHsaOlIlsNlq7_O7k19gmGIYfBWP6Ap4ZM1aNOOsEA3ZG0OHdNJMAq/exec';
+  const APPS_SCRIPT_URL='https://script.google.com/a/macros/itsanet.com/s/AKfycbxk3iCNwlFi8SpHsaOlIlsNlq7_O7k19gmGIYfBWP6Ap4ZM1aNOOsEA3ZG0OHdNJMAq/exec'';
   const MAX_TURNS=3;
 
   let mission='',history=[],turn=0,score=0,busy=false;
@@ -304,79 +317,105 @@ p{color:var(--gray);line-height:1.55}
       category:'Seguridad',
       question:'Vas a entrar a la bodega. ¿Qué debes ponerte?',
       suggestions:['El casco','Nada','Una gorra'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['casco','el casco','ponerme el casco','ponerse el casco'],
+      forbidden:['sin casco','no casco','nada','gorra','sombrero']
     },
     {
       category:'Seguridad',
       question:'¿Por dónde debemos caminar?',
       suggestions:['Zona segura','Entre máquinas','Por cualquier lado'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['zona segura','por la zona segura','camino seguro','paso seguro'],
+      forbidden:['entre maquinas','entre máquinas','cualquier lado','cualquier lugar']
     },
     {
       category:'Seguridad',
       question:'La señal dice NO PASAR. ¿Qué hacemos?',
       suggestions:['No entrar','Entrar rápido','Ignorarla'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['no entrar','no pasar','respetar la señal','me quedo afuera','quedarse afuera'],
+      forbidden:['entrar','entro','pasar','ignorar']
     },
     {
       category:'Seguridad',
       question:'Hay una caja bloqueando el paso. ¿Qué hacemos?',
       suggestions:['Moverla o avisar','Saltar','Dejarla ahí'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['moverla','mover la caja','avisar','quitarla','retirarla','despejar el paso'],
+      forbidden:['saltar','dejarla','dejar ahi','dejar ahí']
     },
     {
       category:'Bodega',
       question:'Usamos mucho esta caja y está lejos. ¿Dónde la pondrías?',
       suggestions:['Cerca','Más lejos','Escondida'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['cerca','mas cerca','más cerca','al lado','junto'],
+      forbidden:['lejos','mas lejos','más lejos','escondida','esconder']
     },
     {
       category:'Bodega',
       question:'Las cajas están mezcladas. ¿Qué hacemos primero?',
       suggestions:['Ordenarlas','Mezclarlas más','Esconderlas'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['ordenar','ordenarlas','organizar','separarlas','clasificarlas'],
+      forbidden:['mezclar','mezclarlas','esconder','esconderlas']
     },
     {
       category:'Bodega',
       question:'¿Qué ayuda a encontrar una caja rápido?',
       suggestions:['Una etiqueta','No marcar nada','Moverla cada día'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['etiqueta','una etiqueta','marcarla','rotulo','rótulo','codigo','código'],
+      forbidden:['no marcar','moverla cada dia','moverla cada día']
     },
     {
       category:'Transporte',
       question:'Hay dos entregas cerca. ¿Qué conviene hacer?',
       suggestions:['Hacerlas juntas','Separarlas siempre','Dar más vueltas'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['juntas','hacerlas juntas','unirlas','misma ruta','juntar las entregas'],
+      forbidden:['separarlas','separadas','dar mas vueltas','dar más vueltas']
     },
     {
       category:'Transporte',
       question:'Antes de salir, ¿qué revisamos?',
       suggestions:['La ruta','Nada','Solo la hora'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['ruta','la ruta','recorrido','camino','direcciones'],
+      forbidden:['nada','solo la hora']
     },
     {
       category:'Procesos',
       question:'Escribimos lo mismo tres veces. ¿Podemos hacerlo una sola vez?',
       suggestions:['Sí','No','Cinco veces'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['si','sí','una vez','solo una vez'],
+      forbidden:['no','cinco veces','5 veces']
     },
     {
       category:'Procesos',
       question:'Hay un paso repetido. ¿Qué hacemos?',
       suggestions:['Lo revisamos','Agregamos otro','No miramos'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['revisar','lo revisamos','eliminarlo','quitarlo','simplificar'],
+      forbidden:['agregar otro','agregamos otro','no miramos','ignorar']
     },
     {
       category:'Tecnología',
       question:'Repetimos esta tarea todos los días. ¿Puede ayudar una computadora?',
       suggestions:['Sí','No','Nunca'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['si','sí','puede ayudar','automatizar','automaticamente','automáticamente'],
+      forbidden:['no','nunca']
     },
     {
       category:'Tecnología',
       question:'Falta un dato. ¿Qué podría hacer el sistema?',
       suggestions:['Avisarnos','Ocultarlo','Ignorarlo'],
-      recommendedIndex:0
+      recommendedIndex:0,
+      accepted:['avisar','avisarnos','alertar','notificar','mostrar un aviso'],
+      forbidden:['ocultar','ocultarlo','ignorar','ignorarlo']
     }
   ];
 
@@ -817,12 +856,101 @@ p{color:var(--gray);line-height:1.55}
     );
   }
 
-  async function submitAnswer(text,fromVoice){
+  function normalizarRespuesta(texto){
+    return String(texto||'')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase()
+      .replace(/[^a-z0-9ñ\s]/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function contieneFrase(texto,frase){
+    const t=' '+normalizarRespuesta(texto)+' ';
+    const f=' '+normalizarRespuesta(frase)+' ';
+    return t.includes(f);
+  }
+
+  /*
+   * Validación LOCAL:
+   * Gemini NO decide si el niño acertó.
+   */
+  function validarRespuestaLibre(question,texto){
+    if(!question) return false;
+
+    const t=normalizarRespuesta(texto);
+
+    if(!t) return false;
+
+    // Primero buscamos expresiones prohibidas.
+    const forbidden=Array.isArray(question.forbidden)
+      ? question.forbidden
+      : [];
+
+    for(const f of forbidden){
+      if(contieneFrase(t,f)){
+        return false;
+      }
+    }
+
+    const accepted=Array.isArray(question.accepted)
+      ? question.accepted
+      : [];
+
+    for(const a of accepted){
+      if(contieneFrase(t,a)){
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function feedbackLocal(correcta){
+    if(correcta){
+      const mensajes=[
+        '¡Sííí! ¡Muy bien!',
+        '¡Bip, bip! ¡Respuesta correcta!',
+        '¡Excelente idea!',
+        '¡Genial! ¡Eso nos ayuda mucho!'
+      ];
+
+      return mensajes[
+        Math.floor(Math.random()*mensajes.length)
+      ];
+    }
+
+    const mensajes=[
+      '¡Casi! Mira la pista verde.',
+      '¡Buena idea! Pero revisa la opción verde.',
+      '¡Bip, bip! Pensemos otra vez. Mira la pista verde.'
+    ];
+
+    return mensajes[
+      Math.floor(Math.random()*mensajes.length)
+    ];
+  }
+
+  async function submitAnswer(text,fromVoice,explicitCorrect=null){
     text=String(text||'').trim();
 
     if(!text || busy || turnLocked || turn>=MAX_TURNS){
       return;
     }
+
+    const currentQuestion=sessionQuestions[turn] || null;
+
+    /*
+     * Si viene de un botón, usamos su índice exacto.
+     * Si viene de voz/texto, evaluamos localmente.
+     */
+    const esCorrecta=
+      explicitCorrect===true
+        ? true
+        : explicitCorrect===false
+          ? false
+          : validarRespuestaLibre(currentQuestion,text);
 
     turnLocked=true;
     busy=true;
@@ -844,23 +972,18 @@ p{color:var(--gray);line-height:1.55}
     $('status').textContent='RITO está pensando...'; setRobotState('thinking');
     setSuggestionsEnabled(false);
 
-    let data;
+    /*
+     * La evaluación es local y determinista.
+     * Gemini ya no puede aprobar una respuesta incorrecta.
+     */
+    const data={
+      ok:true,
+      reply:feedbackLocal(esCorrecta),
+      points:esCorrecta ? 20 : 5,
+      mood:esCorrecta ? 'celebrate' : 'thinking'
+    };
 
-    try{
-      data=await backend(text,prior,turn);
-    }
-    catch(e){
-      data={
-        ok:true,
-        reply:'¡Muy bien! Esa es una idea interesante.',
-        points:5,
-        mood:'happy'
-      };
-    }
-
-    const reply=String(
-      data.reply || '¡Muy bien! Esa es una buena idea.'
-    ).trim();
+    const reply=data.reply;
 
     history.push({
       role:'model',
@@ -941,7 +1064,7 @@ p{color:var(--gray);line-height:1.55}
     r.onresult=e=>{
       if(turnLocked||busy||ritoSpeaking)return;
       const t=String(e.results[0][0].transcript||'').trim();
-      if(t)submitAnswer(t,true);
+      if(t)submitAnswer(t,true,null);
     };
     r.onerror=e=>{
       if(e.error==='not-allowed'||e.error==='service-not-allowed'){
@@ -1045,8 +1168,8 @@ p{color:var(--gray);line-height:1.55}
 
     startRecognitionOnly();
   };
-  $('sendBtn').onclick=()=>submitAnswer($('messageInput').value,false);
-  $('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitAnswer(e.target.value,false)}});
+  $('sendBtn').onclick=()=>submitAnswer($('messageInput').value,false,null);
+  $('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitAnswer(e.target.value,false,null)}});
 
   function limpiarNombre(texto){
     let t=String(texto||'')
