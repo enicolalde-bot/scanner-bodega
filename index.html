@@ -74,7 +74,7 @@ p{color:var(--gray);line-height:1.55}
 .chips{display:flex;gap:10px;flex-wrap:wrap}
 .chip{border:2px solid #D6D6D6;background:white;border-radius:999px;padding:11px 15px;font-weight:700;cursor:pointer;transition:.15s}
 .chip.recommended{background:var(--greenbg);border-color:var(--green);color:#12613c;box-shadow:0 0 0 4px rgba(31,164,99,.09)}
-.chip.recommended:before{content:"✓ Sugerencia ";font-size:.78rem;font-weight:800}
+.chip.recommended:before{content:"✓ ";font-size:.78rem;font-weight:800}
 .chip:disabled{opacity:.55;cursor:not-allowed}
 .controls{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:16px}
 .mic{width:68px;height:68px;border-radius:50%;border:0;background:var(--blue);color:white;font-size:1.7rem;cursor:pointer}
@@ -142,6 +142,28 @@ p{color:var(--gray);line-height:1.55}
 @media(max-width:900px){.game-grid{grid-template-columns:310px 1fr}.rito-side .rito{transform:scale(.78);height:330px}}
 @media(max-width:800px){.hero{grid-template-columns:1fr}.rito-stage{min-height:500px}.game-grid{grid-template-columns:1fr}.rito-side{min-height:380px}.rito-side .rito{transform:scale(.72);height:315px}}
 
+
+.rounds{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:6px;
+}
+.round-dot{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#D6D6D6;
+  transition:.2s;
+}
+.round-dot.active{
+  background:#1C58D7;
+  transform:scale(1.18);
+}
+.round-dot.done{
+  background:#1FA463;
+}
+
 </style>
 </head>
 <body>
@@ -156,7 +178,7 @@ p{color:var(--gray);line-height:1.55}
       <div class="hero-copy">
         <div class="kicker">ITSANET KIDS · REINGENIERÍA</div>
         <h1>¡Hola! Soy RITO</h1>
-        <p>Hoy vamos a convertir problemas en ideas. Yo te haré tres preguntas y juntos encontraremos una forma mejor de hacer las cosas.</p>
+        <p>Hoy jugaremos con 3 mini retos. Tú eliges una idea y RITO te acompaña.</p>
         <button id="startBtn" class="btn primary">Comenzar misión</button>
       </div>
       <div class="rito-stage">
@@ -202,7 +224,7 @@ p{color:var(--gray);line-height:1.55}
 
   <section id="missions" class="screen">
     <div class="card mission-area">
-      <div class="kicker">3 DESAFÍOS SORPRESA</div>
+      <div class="kicker">3 MINI RETOS</div>
       <h2>Escoge una aventura para comenzar</h2><p>RITO elegirá 3 preguntas diferentes al azar. Siempre incluirá al menos un reto de seguridad.</p>
       <div class="mission-grid">
         <button class="mission" data-mission="Bodega veloz"><div class="ico">📦</div><h3>Bodega veloz</h3><p>Reducir recorridos y ordenar mejor.</p></button>
@@ -227,7 +249,7 @@ p{color:var(--gray);line-height:1.55}
       <main class="game-main">
         <div class="game-head">
           <div><div class="kicker">MISIÓN ACTUAL</div><h2 id="missionTitle">Misión</h2></div>
-          <div class="turns">Conversación <span id="turnLabel">0/3</span></div>
+          <div><div class="turns">Reto <span id="turnLabel">0/3</span></div><div class="rounds"><span class="round-dot" id="dot1"></span><span class="round-dot" id="dot2"></span><span class="round-dot" id="dot3"></span></div></div>
         </div>
 
         <div class="chat" id="chat"></div>
@@ -279,123 +301,81 @@ p{color:var(--gray);line-height:1.55}
    */
   const questionBank = [
     {
-      category:'Bodega',
-      question:'En una bodega, una persona camina muchas veces para buscar las cajas que más usa. ¿Qué harías para ayudarla?',
-      suggestions:[
-        'Dejaría todo en el mismo lugar',
-        'Pondría las cajas más usadas cerca',
-        'Haría que camine más rápido'
-      ],
-      recommendedIndex:1
-    },
-    {
-      category:'Bodega',
-      question:'Hay cajas mezcladas y cuesta encontrarlas. ¿Qué idea ayudaría a trabajar mejor?',
-      suggestions:[
-        'Ordenarlas y colocar etiquetas',
-        'Esconder algunas cajas',
-        'Ponerlas todas juntas sin orden'
-      ],
+      category:'Seguridad',
+      question:'Vas a entrar a la bodega. ¿Qué debes ponerte?',
+      suggestions:['El casco','Nada','Una gorra'],
       recommendedIndex:0
     },
     {
       category:'Seguridad',
-      question:'Antes de entrar a una zona de trabajo donde se requiere protección, ¿qué es importante hacer?',
-      suggestions:[
-        'Entrar corriendo',
-        'Ponerse el casco y el equipo de seguridad',
-        'Entrar sin mirar las señales'
-      ],
-      recommendedIndex:1
-    },
-    {
-      category:'Seguridad',
-      question:'Si ves una zona marcada como segura para caminar dentro de una operación, ¿qué deberías hacer?',
-      suggestions:[
-        'Caminar por la zona segura',
-        'Caminar entre los equipos',
-        'Cruzar por cualquier lugar'
-      ],
+      question:'¿Por dónde debemos caminar?',
+      suggestions:['Zona segura','Entre máquinas','Por cualquier lado'],
       recommendedIndex:0
     },
     {
       category:'Seguridad',
-      question:'Si encuentras una caja bloqueando un paso seguro, ¿qué sería mejor hacer?',
-      suggestions:[
-        'Dejarla ahí',
-        'Moverla o avisar para mantener libre el paso',
-        'Saltar sobre la caja'
-      ],
-      recommendedIndex:1
+      question:'La señal dice NO PASAR. ¿Qué hacemos?',
+      suggestions:['No entrar','Entrar rápido','Ignorarla'],
+      recommendedIndex:0
     },
     {
-      category:'Procesos',
-      question:'Una persona escribe el mismo dato tres veces en lugares diferentes. ¿Cómo podríamos mejorar ese trabajo?',
-      suggestions:[
-        'Escribirlo todavía más veces',
-        'Escribirlo una sola vez y compartirlo',
-        'Borrar todos los datos'
-      ],
-      recommendedIndex:1
+      category:'Seguridad',
+      question:'Hay una caja bloqueando el paso. ¿Qué hacemos?',
+      suggestions:['Moverla o avisar','Saltar','Dejarla ahí'],
+      recommendedIndex:0
     },
     {
-      category:'Procesos',
-      question:'Un proceso tiene muchos pasos y dos de ellos hacen exactamente lo mismo. ¿Qué harías?',
-      suggestions:[
-        'Revisaría si podemos eliminar el paso repetido',
-        'Agregaría más pasos',
-        'No revisaría el proceso'
-      ],
+      category:'Bodega',
+      question:'Usamos mucho esta caja y está lejos. ¿Dónde la pondrías?',
+      suggestions:['Cerca','Más lejos','Escondida'],
+      recommendedIndex:0
+    },
+    {
+      category:'Bodega',
+      question:'Las cajas están mezcladas. ¿Qué hacemos primero?',
+      suggestions:['Ordenarlas','Mezclarlas más','Esconderlas'],
+      recommendedIndex:0
+    },
+    {
+      category:'Bodega',
+      question:'¿Qué ayuda a encontrar una caja rápido?',
+      suggestions:['Una etiqueta','No marcar nada','Moverla cada día'],
       recommendedIndex:0
     },
     {
       category:'Transporte',
-      question:'Tenemos tres entregas muy cerca unas de otras. ¿Cómo podríamos recorrer menos distancia?',
-      suggestions:[
-        'Juntaría las entregas cercanas en una misma ruta',
-        'Haría tres viajes separados sin revisar',
-        'Tomaría siempre el camino más largo'
-      ],
+      question:'Hay dos entregas cerca. ¿Qué conviene hacer?',
+      suggestions:['Hacerlas juntas','Separarlas siempre','Dar más vueltas'],
       recommendedIndex:0
     },
     {
       category:'Transporte',
-      question:'Antes de salir a realizar varias entregas, ¿qué podría ayudarnos a elegir una mejor ruta?',
-      suggestions:[
-        'Revisar los lugares y el recorrido antes de salir',
-        'Salir sin saber a dónde vamos',
-        'Dar vueltas hasta encontrar el lugar'
-      ],
+      question:'Antes de salir, ¿qué revisamos?',
+      suggestions:['La ruta','Nada','Solo la hora'],
+      recommendedIndex:0
+    },
+    {
+      category:'Procesos',
+      question:'Escribimos lo mismo tres veces. ¿Podemos hacerlo una sola vez?',
+      suggestions:['Sí','No','Cinco veces'],
+      recommendedIndex:0
+    },
+    {
+      category:'Procesos',
+      question:'Hay un paso repetido. ¿Qué hacemos?',
+      suggestions:['Lo revisamos','Agregamos otro','No miramos'],
       recommendedIndex:0
     },
     {
       category:'Tecnología',
-      question:'Una persona copia el mismo dato muchas veces todos los días. ¿Cómo podría ayudar una computadora?',
-      suggestions:[
-        'Copiar el dato automáticamente',
-        'Pedirle que lo copie más veces',
-        'No guardar ningún dato'
-      ],
+      question:'Repetimos esta tarea todos los días. ¿Puede ayudar una computadora?',
+      suggestions:['Sí','No','Nunca'],
       recommendedIndex:0
     },
     {
       category:'Tecnología',
-      question:'Un trabajador debe revisar muchas veces si falta información. ¿Qué podría hacer la tecnología?',
-      suggestions:[
-        'Avisar automáticamente cuando falte un dato',
-        'Ocultar los errores',
-        'No revisar nada'
-      ],
-      recommendedIndex:0
-    },
-    {
-      category:'Seguridad',
-      question:'Si una alarma o señal avisa que no debemos entrar a una zona, ¿qué sería lo más seguro?',
-      suggestions:[
-        'Respetar la señal y permanecer en la zona segura',
-        'Entrar para mirar qué pasa',
-        'Ignorar la señal'
-      ],
+      question:'Falta un dato. ¿Qué podría hacer el sistema?',
+      suggestions:['Avisarnos','Ocultarlo','Ignorarlo'],
       recommendedIndex:0
     }
   ];
@@ -440,15 +420,29 @@ p{color:var(--gray);line-height:1.55}
     return sessionQuestions[turn] || null;
   }
 
-  const farewellBase='¡Misión cumplida! Me encantaron tus ideas. Hoy pensaste como un verdadero pequeño ingeniero de ITSANET: observaste un problema, imaginaste soluciones y buscaste una forma mejor de hacerlo. Sigue preguntando, creando y soñando en grande. ¡Te esperamos en una próxima misión!';
+  const farewellBase='¡Bip, bip! ¡Misión cumplida! Hoy pensaste como un pequeño ingeniero de ITSANET. ¡Sigue creando grandes ideas!';
 
   function despedidaPersonalizada(){
     return userName
-      ? '¡Misión cumplida, '+userName+'! Me encantaron tus ideas. Hoy pensaste como un verdadero pequeño ingeniero de ITSANET: observaste un problema, imaginaste soluciones y buscaste una forma mejor de hacerlo. Sigue preguntando, creando y soñando en grande. ¡Te esperamos en una próxima misión!'
+      ? '¡Bip, bip! ¡Misión cumplida, '+userName+'! Hoy pensaste como un pequeño ingeniero de ITSANET. ¡Sigue creando grandes ideas!'
       : farewellBase;
   }
 
   function show(id){screens.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo(0,0)}
+  function actualizarDots(){
+    for(let i=1;i<=3;i++){
+      const d=$('dot'+i);
+      if(!d) continue;
+      d.classList.remove('active','done');
+
+      if(i<=turn){
+        d.classList.add('done');
+      }else if(i===turn+1){
+        d.classList.add('active');
+      }
+    }
+  }
+
   function bubble(text,who){const d=document.createElement('div');d.className='bubble '+who;d.textContent=text;$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
 
   function cleanSpeech(text){
@@ -518,9 +512,11 @@ p{color:var(--gray);line-height:1.55}
     const phrases=clean.split(/(?<=[.!?])\s+/).filter(Boolean);
     let i=0;
     const cfg={
-      happy:[.84,1.24], excited:[.86,1.32],
-      thinking:[.80,1.18], celebrate:[.87,1.34]
-    }[mood]||[.84,1.24];
+      happy:[.92,1.17],
+      excited:[.94,1.22],
+      thinking:[.88,1.12],
+      celebrate:[.96,1.24]
+    }[mood]||[.92,1.17];
 
     const next=()=>{
       if(i>=phrases.length){
@@ -531,8 +527,8 @@ p{color:var(--gray);line-height:1.55}
       const u=new SpeechSynthesisUtterance(phrases[i++]);
       const v=voice(); if(v)u.voice=v;
       u.lang='es-EC';u.rate=cfg[0];u.pitch=cfg[1];u.volume=1;
-      u.onend=()=>setTimeout(next,520);
-      u.onerror=()=>setTimeout(next,300);
+      u.onend=()=>setTimeout(next,390);
+      u.onerror=()=>setTimeout(next,260);
       speechSynthesis.speak(u);
     };
     next();
@@ -620,7 +616,7 @@ p{color:var(--gray);line-height:1.55}
     sessionQuestions=seleccionarTresPreguntas();
 
     $('score').textContent='0';
-    $('turnLabel').textContent='0/3';
+    $('turnLabel').textContent='0/3'; actualizarDots();
     $('chat').innerHTML='';
     $('finish').classList.remove('show');
     $('interaction').style.display='block';
@@ -630,8 +626,8 @@ p{color:var(--gray);line-height:1.55}
 
     const intro=
       userName
-        ? '¡Vamos, '+userName+'! Tengo tres desafíos sorpresa para ti. '+q.question
-        : '¡Tengo tres desafíos sorpresa para ti! '+q.question;
+        ? '¡Vamos, '+userName+'! ¡Bip, bip! Hoy tenemos tres mini retos. '+q.question
+        : '¡Bip, bip! Hoy tenemos tres mini retos. '+q.question;
 
     bubble(intro,'rito-msg');
 
@@ -678,8 +674,8 @@ p{color:var(--gray);line-height:1.55}
 
     const texto=
       userName
-        ? '¡Muy bien, '+userName+'! Vamos con el siguiente desafío. '+q.question
-        : '¡Muy bien! Vamos con el siguiente desafío. '+q.question;
+        ? '¡Muy bien, '+userName+'! Bip, bip. Vamos con el siguiente reto. '+q.question
+        : '¡Muy bien! Bip, bip. Vamos con el siguiente reto. '+q.question;
 
     bubble(texto,'rito-msg');
 
@@ -755,7 +751,7 @@ p{color:var(--gray);line-height:1.55}
     });
 
     turn++;
-    $('turnLabel').textContent=turn+'/3';
+    $('turnLabel').textContent=turn+'/3'; actualizarDots();
 
     bubble(text,'kid');
 
@@ -833,7 +829,7 @@ p{color:var(--gray);line-height:1.55}
     stopRecognitionOnly();
 
     turn++;
-    $('turnLabel').textContent=turn+'/3';
+    $('turnLabel').textContent=turn+'/3'; actualizarDots();
 
     bubble(text,'kid');
 
@@ -1090,7 +1086,7 @@ p{color:var(--gray);line-height:1.55}
     $('nameStatus').textContent='¡Hola, '+userName+'! RITO ya te conoce.';
 
     speak(
-      '¡Hola, '+userName+'! Qué gusto conocerte. Hoy tú serás mi pequeño ingeniero de ITSANET. ¡Escoge una misión y vamos a divertirnos!',
+      '¡Hola, '+userName+'! ¡Qué gusto conocerte! Hoy serás mi pequeño ingeniero de ITSANET. ¡Vamos a jugar!',
       'excited',
       ()=>{
         show('missions');
@@ -1182,7 +1178,7 @@ p{color:var(--gray);line-height:1.55}
     $('nameInput').value='';
 
     speak(
-      '¡Hola! Soy RITO, el robot de Reingeniería de ITSANET. Antes de empezar quiero conocerte. ¿Cómo te llamas?',
+      '¡Bip, bip! ¡Hola! Soy RITO, el robot de ITSANET. ¿Cómo te llamas?',
       'excited',
       ()=>{
         $('nameStatus').textContent='🎤 Ahora dime tu primer nombre.';
@@ -1220,7 +1216,7 @@ p{color:var(--gray);line-height:1.55}
     show('nameScreen');
 
     speak(
-      '¡Hola! Soy RITO. Estoy listo para conocer a mi siguiente pequeño ingeniero. ¿Cómo te llamas?',
+      '¡Bip, bip! ¡Hola! Soy RITO. ¿Cómo te llamas?',
       'excited',
       ()=>{
         $('nameStatus').textContent='🎤 Dime tu primer nombre.';
