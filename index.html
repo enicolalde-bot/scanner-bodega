@@ -93,6 +93,55 @@ p{color:var(--gray);line-height:1.55}
  .rito-side{min-height:330px} .rito-side .rito{transform:scale(.60);height:230px}
  .controls{grid-template-columns:auto 1fr} .controls .send{grid-column:1/-1}
 }
+
+/* ===== V13: RITO MÁS GRANDE + MEJOR USO DEL ESPACIO ===== */
+.hero{min-height:68vh;grid-template-columns:.92fr 1.08fr}
+.hero-copy{padding:40px 42px}
+.rito-stage{padding:18px;min-height:560px}
+.rito{width:340px;height:420px}
+.antenna{height:62px}
+.head{top:50px;left:28px;width:284px;height:175px;border-radius:58px 58px 44px 44px}
+.eye{top:58px;width:36px;height:42px;border-radius:18px}
+.eye.left{left:68px}.eye.right{right:68px}
+.mouth{bottom:30px;width:78px;height:15px}
+.body{top:225px;left:52px;width:236px;height:180px;border-radius:34px 34px 64px 64px}
+.chest{width:108px;height:108px}
+.arm{top:250px;width:70px;height:136px}
+.rito-name{bottom:15px;font-size:1rem;padding:10px 18px}
+
+.game-grid{grid-template-columns:360px 1fr;min-height:700px}
+.rito-side{padding:18px 16px 22px;justify-content:flex-start}
+.rito-side .rito{transform:scale(.92);transform-origin:top center;height:390px;margin-bottom:-20px}
+.rito-bubble{font-size:1rem;padding:12px 14px;margin-top:0}
+.game-main{padding:22px 24px}
+.chat{height:300px}
+.suggest{margin-top:12px;padding:13px}
+.controls{margin-top:12px}
+
+.rito.listening .eye{animation:listenEyes .65s infinite alternate}
+@keyframes listenEyes{from{transform:scaleY(1)}to{transform:scaleY(.72)}}
+.rito.thinking{animation:thinkTilt .85s ease-in-out infinite alternate}
+@keyframes thinkTilt{from{transform:rotate(-2deg)}to{transform:rotate(3deg)}}
+.rito.celebrating{animation:ritoDance .34s ease-in-out infinite alternate!important}
+.rito.celebrating .arm.a{animation:armDanceA .34s ease-in-out infinite alternate;transform-origin:top center}
+.rito.celebrating .arm.b{animation:armDanceB .34s ease-in-out infinite alternate;transform-origin:top center}
+.rito.celebrating .eye{animation:happyEyes .45s infinite alternate}
+.rito.celebrating .body{animation:bodyBounce .38s ease-in-out infinite alternate}
+@keyframes ritoDance{0%{transform:translateY(0) rotate(-5deg) scale(1)}100%{transform:translateY(-18px) rotate(6deg) scale(1.04)}}
+@keyframes armDanceA{0%{transform:rotate(30deg)}100%{transform:rotate(-38deg)}}
+@keyframes armDanceB{0%{transform:rotate(-30deg)}100%{transform:rotate(38deg)}}
+@keyframes happyEyes{from{height:40px}to{height:18px;border-radius:50%}}
+@keyframes bodyBounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+
+.confetti-wrap{pointer-events:none;position:fixed;inset:0;overflow:hidden;z-index:9998}
+.confetti{position:absolute;top:-20px;width:12px;height:18px;border-radius:4px;animation:fallConfetti 2.6s linear forwards}
+@keyframes fallConfetti{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
+
+.name-mic-hint{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:#E9F8F0;color:#12613c;border-radius:999px;padding:8px 12px;font-weight:800;font-size:.92rem}
+
+@media(max-width:900px){.game-grid{grid-template-columns:310px 1fr}.rito-side .rito{transform:scale(.78);height:330px}}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.rito-stage{min-height:500px}.game-grid{grid-template-columns:1fr}.rito-side{min-height:380px}.rito-side .rito{transform:scale(.72);height:315px}}
+
 </style>
 </head>
 <body>
@@ -136,7 +185,7 @@ p{color:var(--gray);line-height:1.55}
           <button id="nameContinueBtn" class="btn primary" type="button">Continuar</button>
         </div>
 
-        <div id="nameStatus" class="status">Escucha a RITO y luego dile tu nombre.</div>
+        <div id="nameStatus" class="status">Escucha a RITO y luego dile tu nombre.</div><div class="name-mic-hint">🎤 El micrófono se activará automáticamente</div>
         <div class="notice">Tu nombre se usa solo durante este juego y no se guarda.</div>
       </div>
 
@@ -215,6 +264,8 @@ p{color:var(--gray);line-height:1.55}
   const MAX_TURNS=3;
 
   let mission='',history=[],turn=0,score=0,busy=false;
+  let currentSuggestions=[];
+  let currentRecommendedIndex=-1;
   let userName='';
   let recognition=null,nameRecognition=null,micEnabled=false,turnLocked=false,ritoSpeaking=false,cbCount=0;
 
@@ -414,15 +465,53 @@ p{color:var(--gray);line-height:1.55}
       ||vs.find(v=>/^es/i.test(v.lang))||null;
   }
 
+  function limpiarEstadosRito(){
+    ['ritoWelcome','ritoName','ritoGame'].forEach(id=>{
+      const el=$(id);
+      if(!el) return;
+      el.classList.remove('talking','listening','thinking','celebrating');
+    });
+  }
+
   function setRobotTalking(on){
-    $('ritoWelcome').classList.toggle('talking',on);
-    $('ritoName').classList.toggle('talking',on);
-    $('ritoGame').classList.toggle('talking',on);
+    ['ritoWelcome','ritoName','ritoGame'].forEach(id=>{
+      const el=$(id);
+      if(el) el.classList.toggle('talking',on);
+    });
+  }
+
+  function setRobotState(state){
+    limpiarEstadosRito();
+    ['ritoWelcome','ritoName','ritoGame'].forEach(id=>{
+      const el=$(id);
+      if(!el) return;
+      if(state==='talking') el.classList.add('talking');
+      if(state==='listening') el.classList.add('listening');
+      if(state==='thinking') el.classList.add('thinking');
+      if(state==='celebrating') el.classList.add('celebrating');
+    });
+  }
+
+  function lanzarConfeti(){
+    const wrap=document.createElement('div');
+    wrap.className='confetti-wrap';
+    document.body.appendChild(wrap);
+    const colors=['#1C58D7','#4274DE','#D2DEF7','#1FA463','#FFD166','#F25F5C'];
+    for(let i=0;i<70;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=(Math.random()*100)+'vw';
+      c.style.animationDelay=(Math.random()*.7)+'s';
+      c.style.animationDuration=(2+Math.random()*1.2)+'s';
+      c.style.background=colors[Math.floor(Math.random()*colors.length)];
+      wrap.appendChild(c);
+    }
+    setTimeout(()=>wrap.remove(),4200);
   }
 
   function speak(text,mood='happy',done){
     if(!('speechSynthesis' in window)){done&&done();return}
-    speechSynthesis.cancel(); ritoSpeaking=true; setRobotTalking(true);
+    speechSynthesis.cancel(); ritoSpeaking=true; setRobotState(mood==='celebrate'?'celebrating':'talking');
     $('ritoStatus').textContent= turn ? 'RITO está hablando...' : '¡Bienvenido!';
 
     const clean=cleanSpeech(text);
@@ -435,7 +524,7 @@ p{color:var(--gray);line-height:1.55}
 
     const next=()=>{
       if(i>=phrases.length){
-        ritoSpeaking=false;setRobotTalking(false);
+        ritoSpeaking=false;setRobotState('idle');
         $('ritoStatus').textContent= turn<MAX_TURNS ? '¡Ahora te escucho a ti!' : '¡Misión terminada!';
         done&&done();return;
       }
@@ -452,25 +541,56 @@ p{color:var(--gray);line-height:1.55}
   function renderSuggestions(suggestions,index){
     $('chips').innerHTML='';
 
-    suggestions.forEach((txt,i)=>{
+    currentSuggestions=Array.isArray(suggestions)
+      ? [...suggestions]
+      : [];
+
+    currentRecommendedIndex=Number.isInteger(index)
+      ? index
+      : Number(index);
+
+    currentSuggestions.forEach((txt,i)=>{
       const b=document.createElement('button');
 
       b.className=
         'chip'+
-        (i===index ? ' recommended' : '');
+        (i===currentRecommendedIndex ? ' recommended' : '');
 
       b.textContent=txt;
+      b.dataset.index=String(i);
 
-      // Mientras RITO habla, permanecen bloqueadas.
+      // Se habilitan únicamente cuando RITO termina de hablar.
       b.disabled=true;
 
-      b.onclick=()=>submitAnswer(txt,false);
+      /*
+       * pointerdown ocurre ANTES que click.
+       * Así detenemos el micrófono antes de que una voz del grupo
+       * pueda competir con la respuesta que el niño está tocando.
+       */
+      b.addEventListener('pointerdown',()=>{
+        if(!b.disabled && !busy && !turnLocked){
+          turnLocked=true;
+          stopRecognitionOnly();
+        }
+      });
+
+      b.addEventListener('click',()=>{
+        if(b.disabled || busy) return;
+
+        const selectedIndex=Number(b.dataset.index);
+
+        submitSuggestedAnswer(
+          txt,
+          selectedIndex,
+          currentRecommendedIndex
+        );
+      });
 
       $('chips').appendChild(b);
     });
 
     $('suggestBox').style.display=
-      suggestions.length
+      currentSuggestions.length
         ? 'block'
         : 'none';
   }
@@ -613,6 +733,94 @@ p{color:var(--gray);line-height:1.55}
     });
   }
 
+  function submitSuggestedAnswer(text,selectedIndex,recommendedIndex){
+    text=String(text||'').trim();
+
+    if(!text || busy || turn>=MAX_TURNS){
+      return;
+    }
+
+    // El pointerdown ya bloqueó el turno. Reforzamos aquí.
+    turnLocked=true;
+    busy=true;
+    stopRecognitionOnly();
+    setSuggestionsEnabled(false);
+
+    // Marcamos visualmente lo que eligió el niño.
+    document.querySelectorAll('.chip').forEach((b,i)=>{
+      if(i===selectedIndex){
+        b.style.transform='scale(1.03)';
+        b.style.boxShadow='0 0 0 4px rgba(28,88,215,.14)';
+      }
+    });
+
+    turn++;
+    $('turnLabel').textContent=turn+'/3';
+
+    bubble(text,'kid');
+
+    history.push({
+      role:'user',
+      text:text
+    });
+
+    const correcta=selectedIndex===recommendedIndex;
+
+    let reply;
+    let points;
+    let mood;
+
+    if(correcta){
+      reply = userName
+        ? '¡Excelente, '+userName+'! Esa es una muy buena decisión. Ayuda a trabajar mejor y de forma más segura.'
+        : '¡Excelente! Esa es una muy buena decisión. Ayuda a trabajar mejor y de forma más segura.';
+      points=20;
+      mood='celebrate';
+    }else{
+      reply = userName
+        ? '¡Casi, '+userName+'! Buena participación. Fíjate en la opción verde: esa nos ayuda a mejorar el proceso de una forma más segura y eficiente.'
+        : '¡Casi! Buena participación. Fíjate en la opción verde: esa nos ayuda a mejorar el proceso de una forma más segura y eficiente.';
+      points=5;
+      mood='thinking';
+    }
+
+    history.push({
+      role:'model',
+      text:reply
+    });
+
+    bubble(reply,'rito-msg');
+
+    score+=points;
+    $('score').textContent=score;
+
+    if(turn>=MAX_TURNS){
+      renderSuggestions([], -1);
+      setSuggestionsEnabled(false);
+      stopMic();
+
+      speak(
+        reply,
+        mood,
+        ()=>setTimeout(finishMission,650)
+      );
+
+      return;
+    }
+
+    /*
+     * Para botones sugeridos NO llamamos a Gemini.
+     * Así el clic siempre responde y siempre avanza.
+     */
+    speak(
+      reply,
+      mood,
+      ()=>{
+        setTimeout(mostrarSiguientePregunta,550);
+      }
+    );
+  }
+
   async function submitAnswer(text,fromVoice){
     text=String(text||'').trim();
 
@@ -637,7 +845,7 @@ p{color:var(--gray);line-height:1.55}
     });
 
     $('messageInput').value='';
-    $('status').textContent='RITO está pensando...';
+    $('status').textContent='RITO está pensando...'; setRobotState('thinking');
     setSuggestionsEnabled(false);
 
     let data;
@@ -695,13 +903,24 @@ p{color:var(--gray);line-height:1.55}
   function finishMission(){
     busy=false;
     turnLocked=true;
-
     $('interaction').style.display='none';
     $('suggestBox').style.display='none';
 
     const farewell=despedidaPersonalizada();
     bubble(farewell,'rito-msg');
-    speak(farewell,'celebrate',()=>$('finish').classList.add('show'));
+
+    setRobotState('celebrating');
+    lanzarConfeti();
+
+    speak(
+      farewell,
+      'celebrate',
+      ()=>{
+        setRobotState('celebrating');
+        $('finish').classList.add('show');
+        setTimeout(()=>setRobotState('idle'),4200);
+      }
+    );
   }
 
   function stopRecognitionOnly(){
@@ -861,6 +1080,7 @@ p{color:var(--gray);line-height:1.55}
     }
 
     userName=limpio;
+    nameMicEnabled=false;
     $('nameInput').value=limpio;
 
     if(nameRecognition){
@@ -878,12 +1098,36 @@ p{color:var(--gray);line-height:1.55}
     );
   }
 
+  let nameMicEnabled=true;
+
+  function detenerMicroNombre(){
+    nameMicEnabled=false;
+    if(nameRecognition){
+      try{nameRecognition.abort()}catch(e){}
+      nameRecognition=null;
+    }
+    $('nameMicBtn').classList.remove('active');
+    $('nameMicBtn').textContent='🎤';
+    setRobotState('idle');
+  }
+
+  function activarMicroNombre(){
+    nameMicEnabled=true;
+    escucharNombre();
+  }
+
   function escucharNombre(){
+    if(!nameMicEnabled) return;
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
     if(!SR){
       $('nameStatus').textContent='Tu navegador no permite dictado. Escribe tu nombre y pulsa Continuar.';
       return;
+    }
+
+    if(nameRecognition){
+      try{nameRecognition.abort()}catch(e){}
+      nameRecognition=null;
     }
 
     nameRecognition=new SR();
@@ -894,7 +1138,9 @@ p{color:var(--gray);line-height:1.55}
 
     nameRecognition.onstart=()=>{
       $('nameMicBtn').classList.add('active');
+      $('nameMicBtn').textContent='■';
       $('nameStatus').textContent='🎤 Te escucho... dime solo tu primer nombre.';
+      setRobotState('listening');
     };
 
     nameRecognition.onresult=e=>{
@@ -904,33 +1150,57 @@ p{color:var(--gray);line-height:1.55}
 
     nameRecognition.onerror=e=>{
       $('nameMicBtn').classList.remove('active');
+      $('nameMicBtn').textContent='🎤';
+      setRobotState('idle');
+
       if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        nameMicEnabled=false;
         $('nameStatus').textContent='Permite el micrófono en Chrome o escribe tu nombre.';
-      }else{
-        $('nameStatus').textContent='No entendí el nombre. Intenta otra vez o escríbelo.';
+      }else if(e.error!=='aborted'){
+        $('nameStatus').textContent='No entendí el nombre. Voy a escucharte otra vez...';
+        if(nameMicEnabled) setTimeout(escucharNombre,700);
       }
     };
 
     nameRecognition.onend=()=>{
       $('nameMicBtn').classList.remove('active');
+      $('nameMicBtn').textContent=nameMicEnabled?'■':'🎤';
+      if(nameMicEnabled&&!userName&&!ritoSpeaking&&$('nameScreen').classList.contains('active')){
+        setTimeout(escucharNombre,700);
+      }
     };
 
-    try{nameRecognition.start()}catch(e){}
+    try{nameRecognition.start()}catch(e){
+      setTimeout(()=>{if(nameMicEnabled&&!userName) escucharNombre()},700);
+    }
   }
 
   $('startBtn').onclick=()=>{
     show('nameScreen');
+    userName='';
+    nameMicEnabled=true;
+    $('nameInput').value='';
 
     speak(
       '¡Hola! Soy RITO, el robot de Reingeniería de ITSANET. Antes de empezar quiero conocerte. ¿Cómo te llamas?',
       'excited',
       ()=>{
         $('nameStatus').textContent='🎤 Ahora dime tu primer nombre.';
+        setTimeout(activarMicroNombre,450);
       }
     );
   };
 
-  $('nameMicBtn').onclick=()=>escucharNombre();
+  $('nameMicBtn').onclick=()=>{
+    if(nameMicEnabled){
+      detenerMicroNombre();
+      $('nameStatus').textContent='🔇 Micrófono apagado. Tócalo para volver a activarlo.';
+    }else{
+      nameMicEnabled=true;
+      $('nameStatus').textContent='🎤 Activando micrófono...';
+      escucharNombre();
+    }
+  };
   $('nameContinueBtn').onclick=()=>confirmarNombre($('nameInput').value);
   $('nameInput').addEventListener('keydown',e=>{
     if(e.key==='Enter'){
@@ -944,6 +1214,7 @@ p{color:var(--gray);line-height:1.55}
     speechSynthesis.cancel();
     score=0;
     userName='';
+    nameMicEnabled=true;
     $('score').textContent='0';
     $('nameInput').value='';
     show('nameScreen');
@@ -953,6 +1224,7 @@ p{color:var(--gray);line-height:1.55}
       'excited',
       ()=>{
         $('nameStatus').textContent='🎤 Dime tu primer nombre.';
+        setTimeout(activarMicroNombre,450);
       }
     );
   };
